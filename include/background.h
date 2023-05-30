@@ -112,7 +112,8 @@ struct background
   
   /* Stepped fluid modification */
   
-  double N_ir_step; /**< \f$ N_{\rm ir, step} \f$: Late time (IR) effective UR d.o.f of stepped fluid */
+  double N_ir_step; /**< \f$ N_{\rm IR, step} \f$: Late time (IR) effective UR d.o.f of stepped fluid */  
+  double N_uv_step; /**< \f$ N_{\rm UV, step} \f$: Early time (UV) effective UR d.o.f of stepped fluid */
   double z_step; /**< \f$ z_{\rm step} \f$: Fluid stepping redshift */
   double rg_step; /**< \f$ r_g \f$: Fluid step size parameter, set by model */
 
@@ -185,6 +186,15 @@ struct background
   int index_bg_rho_ur;        /**< relativistic neutrinos/relics density */
   int index_bg_rho_dcdm;      /**< dcdm density */
   int index_bg_rho_dr;        /**< dr density */
+
+  /* Stepped fluid modification */
+
+  int index_bg_rho_stepped_fld; /**< Stepped fluid density */
+  int index_bg_w_stepped_fld; /**< Stepped fluid equation of state */
+  int index_bg_cs2_stepped_fld; /**< Stepped fluid sound speed squared */
+
+  /* End stepped fluid modification */
+
 
   int index_bg_phi_scf;       /**< scalar field value */
   int index_bg_phi_prime_scf; /**< scalar field derivative wrt conformal time */
@@ -304,7 +314,12 @@ struct background
   short has_idr;       /**< presence of interacting dark radiation? */
   short has_curvature; /**< presence of global spatial curvature? */
   short has_varconst;  /**< presence of varying fundamental constants? */
+  
+  /* Stepped fluid modification */ 
+  
+  short has_stepped_fld; /**< presence of stepped dark radiation/fluid? */
 
+  /* End stepped fluid modification */
   //@}
 
 
@@ -432,6 +447,21 @@ extern "C" {
                        double * dw_over_da_fld,
                        double * integral_fld);
 
+  /* Stepped fluid modification */
+
+  int background_stepped_fld(
+                             struct background* pba,
+                             double a,
+                             double a_prime_over_a,
+                             double *rho,
+                             double *p,
+                             double *w,
+                             double *dw_over_da,
+                             double *cs2,
+                             double *dcs2_over_da);
+
+  /* End stepped fluid modification */
+  
   int background_varconst_of_z(
                                struct background* pba,
                                double z,

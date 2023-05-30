@@ -753,6 +753,55 @@ int background_w_fld(
   return _SUCCESS_;
 }
 
+/* Stepped fluid modification */
+
+/**
+ * Call function to obtain relevant parameters associated with the stepped dark radiation.
+ * Parameters of the function are passed through the background structure. 
+ *
+ * @param pba            Input: pointer to background structure
+ * @param a              Input: current value of scale factor
+ * @param a_prime_over_a Input: Hubble parameter
+ * @param rho            Output: Fluid density parameter
+ * @param p              Output: Fluid pressure parameter
+ * @param w              Output: Fluid equation of state parameter
+ * @param dw_over_da     Output: Derivative of equation of state w.r.t. scale factor
+ * @param cs2            Output: Squared sound speed of fluid
+ * @param dcs2_over_da   Output: Derivative of sound speed w.r.t. scale factor
+ * @return the error status
+ */
+
+int background_stepped_fld(
+                           struct background* pba,
+                           double a,
+                           double a_prime_over_a,
+                           double *rho,
+                           double *p,
+                           double *w,
+                           double *dw_over_da,
+                           double *cs2,
+                           double *dcs2_over_da){
+  /* Dummy place holders */
+  *rho=0;
+  *dw_over_da=0;
+  *dcs2_over_da=0;
+
+  double x, rhohat, phat, N;
+  double w_local, cs2_local;
+  x = 0; /* Pretend to solve x at current scale factor a */
+  rhohat = 1;
+  phat = 1;
+
+  w_local = 1/3 - (pba->rg_step/3)*(rhohat-phat)/(1+pba->rg_step*rhohat);
+  cs2_local = 1/3 - (pba->rg_step/36)*(pow(x,2)*phat)/(1+pba->rg_step*(3/4*rhohat+(1/4+pow(x,2)/12)*phat));
+  N = pba->N_ir_step*(1+pba->rg_step*rhohat)/pow(1+pba->rg_step*(3/4*rhohat+1/4*phat), 4/3);
+
+  return _SUCCESS_;
+}
+
+/* End stepped fluid modification */
+
+
 /**
  * Single place where the variation of fundamental constants is
  * defined. Parameters of the function are passed through the
@@ -986,6 +1035,15 @@ int background_indices(
   pba->has_idr = _FALSE_;
   pba->has_curvature = _FALSE_;
   pba->has_varconst  = _FALSE_;
+  
+  /* Stepped fluid modification */
+
+  pba->has_stepped_fld = _FALSE_;
+
+  if (pba->N_ir_step != 0.)
+    pba->has_stepped_fld = _TRUE_;
+
+  /* End stepped fluid modification */
 
   if (pba->Omega0_cdm != 0.)
     pba->has_cdm = _TRUE_;

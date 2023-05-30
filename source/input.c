@@ -2674,11 +2674,16 @@ int input_read_parameters_species(struct file_content * pfc,
   /* 7) ** ADDITIONAL SPECIES ** --> Add your species here */
   
   /* Stepped fluid modification */
-  
+ 
+  /* For now assume that N_IR, rg are inputs, and use them to deduce N_UV.
+   * May generalize to accepting any 2 of the 3 later. */
+
   class_read_double("N_ir_step", pba->N_ir_step);
   class_read_double("z_step", pba->z_step);
   class_read_double("rg_step", pba->rg_step);
-  
+
+  pba->N_uv_step = pba->N_ir_step * pow(1+pba->rg_step, 1/3);
+
   /* End stepped fluid modification */
 
   /** 7.1) Decaying DM into DR */
@@ -5780,9 +5785,10 @@ int input_default_params(struct background *pba,
   /* Stepped fluid modification */
   
   pba->N_ir_step = 0.;
+  pba->N_uv_step = 0.;
   pba->z_step = 0;
   pba->rg_step = 0;
-  
+
   /* End stepped fluid modification */
 
 
