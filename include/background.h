@@ -15,8 +15,8 @@
 enum spatial_curvature {flat,open,closed};
 
 /** list of possible parametrisations of the DE equation of state */
-
-enum equation_of_state {CLP,EDE};
+// ZMODIFY: added onestep as possible fluid eq of state.
+enum equation_of_state {CLP,EDE,onestep};
 
 
 /** list of possible parametrizations of the varying fundamental constants */
@@ -109,6 +109,15 @@ struct background
   double Omega0_scf;       /**< \f$ \Omega_{0 scf} \f$: scalar field */
   short use_ppf; /**< flag switching on PPF perturbation equations instead of true fluid equations for perturbations. It could have been defined inside
                     perturbation structure, but we leave it here in such way to have all fld parameters grouped. */
+  
+  /* Stepped fluid modification */
+  
+  double N_ir_step; /**< \f$ N_{\rm ir, step} \f$: Late time (IR) effective UR d.o.f of stepped fluid */
+  double z_step; /**< \f$ z_{\rm step} \f$: Fluid stepping redshift */
+  double rg_step; /**< \f$ r_g \f$: Fluid step size parameter, set by model */
+
+  /* End stepped fluid modification */
+  
   double c_gamma_over_c_fld; /**< ppf parameter defined in eq. (16) of 0808.3125 [astro-ph] */
   enum equation_of_state fluid_equation_of_state; /**< parametrisation scheme for fluid equation of state */
   double w0_fld;   /**< \f$ w0_{DE} \f$: current fluid equation of state parameter */

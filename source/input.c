@@ -2672,6 +2672,14 @@ int input_read_parameters_species(struct file_content * pfc,
 
 
   /* 7) ** ADDITIONAL SPECIES ** --> Add your species here */
+  
+  /* Stepped fluid modification */
+  
+  class_read_double("N_ir_step", pba->N_ir_step);
+  class_read_double("z_step", pba->z_step);
+  class_read_double("rg_step", pba->rg_step);
+  
+  /* End stepped fluid modification */
 
   /** 7.1) Decaying DM into DR */
   /** 7.1.a) Omega_0_dcdmdr (DCDM, i.e. decaying CDM) */
@@ -3234,8 +3242,14 @@ int input_read_parameters_species(struct file_content * pfc,
       else if ((strstr(string1,"EDE") != NULL) || (strstr(string1,"ede") != NULL)) {
         pba->fluid_equation_of_state = EDE;
       }
+      // ZMODIFY: Added onestep fluid at input level.
+      else if ((strstr(string1,"ONESTEP") != NULL) || (strstr(string1,"onestep") != NULL)) {
+        printf("onestep triggered.");
+        pba->fluid_equation_of_state = onestep; 
+        //class_stop(errmsg,"onestep successfully implemented.")
+      }
       else {
-        class_stop(errmsg,"incomprehensible input '%s' for the field 'fluid_equation_of_state'",string1);
+        class_stop(errmsg,"incomprehensible input '%s' for the field 'fluid_equation_of_state'",string1);        
       }
     }
 
@@ -5762,6 +5776,15 @@ int input_default_params(struct background *pba,
   ppt->has_idm_soundspeed = _FALSE_;
 
   /* ** ADDITIONAL SPECIES ** */
+
+  /* Stepped fluid modification */
+  
+  pba->N_ir_step = 0.;
+  pba->z_step = 0;
+  pba->rg_step = 0;
+  
+  /* End stepped fluid modification */
+
 
   /** 9) Dark energy contributions */
   pba->Omega0_fld = 0.;
