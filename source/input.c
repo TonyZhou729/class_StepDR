@@ -2681,6 +2681,8 @@ int input_read_parameters_species(struct file_content * pfc,
   class_read_double("N_ir_step", pba->N_ir_step);
   class_read_double("z_step", pba->z_step);
   class_read_double("rg_step", pba->rg_step);
+  if (pba->N_ir_step != 0)
+    printf("Input contains stepped fluid with N_IR=%e, z_step=%e and rg_step=%e", pba->N_ir_step, pba->z_step, pba->rg_step);
 
   pba->N_uv_step = pba->N_ir_step * pow(1+pba->rg_step, 1/3);
 
