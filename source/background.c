@@ -837,9 +837,9 @@ int background_stepped_fld(
   
   // Fluid density via neutrino density and definition of delta N_eff.
   N = pba->N_ir_step*(1+pba->rg_step*rhohat)/pow(1+pba->rg_step*(3./4.*rhohat+1./4.*phat), 4./3.);  
-  printf("%g \n", pba->N_uv_step);
-  printf("%g \n", N);
-  rho_local = rho_ur * N;
+  //printf("%g \n", pba->N_uv_step);
+  //printf("%g \n", N);
+  rho_local = rho_ur/3. * N; // Divide by just 1 neutrino flavor! Not all 3!
 
   *rho = rho_local;
   *w = w_local;
