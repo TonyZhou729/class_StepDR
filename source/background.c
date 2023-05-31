@@ -405,6 +405,15 @@ int background_functions(
      Note: The scalar field contribution must be added in the end, as an exception!*/
   double dp_dloga;
 
+  /* Stepped fluid modification */
+
+  double rho_stepped_fld;
+  double w_stepped_fld;
+  double cs2_stepped_fld;
+
+  /* End stepped fluid modification */
+
+
   /** - initialize local variables */
   rho_tot = 0.;
   p_tot = 0.;
@@ -571,6 +580,34 @@ int background_functions(
     p_tot += (1./3.) * pvecback[pba->index_bg_rho_idr];
     rho_r += pvecback[pba->index_bg_rho_idr];
   }
+
+  /* Stepped fluid modification */
+
+  /* steppd fluid with variable equation of state and sound speed */
+  if (pba->has_stepped_fld == _TRUE_) {
+    // Call background function to compute relevant values, store in pvecback
+    class_call(background_stepped_fld(pba, 
+                                      a,
+                                      pvecback[pba->index_bg_rho_ur],
+                                      &rho_stepped_fld,                                 
+                                      &w_stepped_fld,                                       
+                                      &cs2_stepped_fld),
+               pba->error_message,
+               pba->error_message);
+    pvecback[pba->index_bg_rho_stepped_fld] = rho_stepped_fld;
+    pvecback[pba->index_bg_w_stepped_fld] = w_stepped_fld;
+    pvecback[pba->index_bg_cs2_stepped_fld] = cs2_stepped_fld;
+
+    // Add stepped fluid to total density and pressure contributions
+    rho_tot += rho_stepped_fld;
+    p_tot += w_stepped_fld * rho_stepped_fld;
+
+    // Dummy place holder, don't really know what to do with dp_dloga yet...
+    dp_dloga += 0.;
+  }  
+  /* End stepped fluid modification */
+
+
 
   /** - compute expansion rate H from Friedmann equation: this is the
       only place where the Friedmann equation is assumed. Remember
@@ -761,40 +798,39 @@ int background_w_fld(
  *
  * @param pba            Input: pointer to background structure
  * @param a              Input: current value of scale factor
- * @param a_prime_over_a Input: Hubble parameter
- * @param rho            Output: Fluid density parameter
- * @param p              Output: Fluid pressure parameter
- * @param w              Output: Fluid equation of state parameter
- * @param dw_over_da     Output: Derivative of equation of state w.r.t. scale factor
- * @param cs2            Output: Squared sound speed of fluid
- * @param dcs2_over_da   Output: Derivative of sound speed w.r.t. scale factor
+ * @param rho_ur         Input: current neutrino density parameter
+ * @param rho            Output: Fluid density parameter 
+ * @param w              Output: Fluid equation of state parameter 
+ * @param cs2            Output: Squared sound speed of fluid 
  * @return the error status
  */
 
 int background_stepped_fld(
                            struct background* pba,
-                           double a,
-                           double a_prime_over_a,
-                           double *rho,
-                           double *p,
-                           double *w,
-                           double *dw_over_da,
-                           double *cs2,
-                           double *dcs2_over_da){
+                           double a,            
+                           double rho_ur,
+                           double *rho,                           
+                           double *w,                           
+                           double *cs2){
   /* Dummy place holders */
-  *rho=0;
-  *dw_over_da=0;
-  *dcs2_over_da=0;
+  *rho=0;  
 
   double x, rhohat, phat, N;
-  double w_local, cs2_local;
+  double w_local, cs2_local, rho_local;
   x = 0; /* Pretend to solve x at current scale factor a */
   rhohat = 1;
   phat = 1;
 
   w_local = 1/3 - (pba->rg_step/3)*(rhohat-phat)/(1+pba->rg_step*rhohat);
   cs2_local = 1/3 - (pba->rg_step/36)*(pow(x,2)*phat)/(1+pba->rg_step*(3/4*rhohat+(1/4+pow(x,2)/12)*phat));
+  
+  // Fluid density via neutrino density and definition of delta N_eff.
   N = pba->N_ir_step*(1+pba->rg_step*rhohat)/pow(1+pba->rg_step*(3/4*rhohat+1/4*phat), 4/3);
+  rho_local = rho_ur * N;
+
+  *rho = rho_local;
+  *w = w_local;
+  *cs2 = cs2_local;
 
   return _SUCCESS_;
 }
@@ -1157,8 +1193,19 @@ int background_indices(
 
   /* - put here additional ingredients that you want to appear in the
      normal vector */
-  /*    */
-  /*    */
+  
+  /* Stepped fluid modification */
+    
+  /* - index for stepped fluid energy density */
+  class_define_index(pba->index_bg_rho_stepped_fld,pba->has_stepped_fld,index_bg,1);
+  
+  /* - index for stepped fluid equation of state */
+  class_define_index(pba->index_bg_w_stepped_fld,pba->has_stepped_fld,index_bg,1);
+
+  /* - index for stepped fluid squared sound speed */
+  class_define_index(pba->index_bg_cs2_stepped_fld,pba->has_stepped_fld,index_bg,1);
+
+  /* End stepped fluid modification */
 
   /* - end of indices in the normal vector of background values */
   pba->bg_size_normal = index_bg;

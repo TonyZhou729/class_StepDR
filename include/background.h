@@ -452,13 +452,10 @@ extern "C" {
   int background_stepped_fld(
                              struct background* pba,
                              double a,
-                             double a_prime_over_a,
+                             double rho_ur,
                              double *rho,
-                             double *p,
                              double *w,
-                             double *dw_over_da,
-                             double *cs2,
-                             double *dcs2_over_da);
+                             double *cs2);
 
   /* End stepped fluid modification */
   
