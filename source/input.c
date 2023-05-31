@@ -2684,7 +2684,7 @@ int input_read_parameters_species(struct file_content * pfc,
   if (pba->N_ir_step != 0)
     printf("Input contains stepped fluid with N_IR=%e, z_step=%e and rg_step=%e", pba->N_ir_step, pba->z_step, pba->rg_step);
 
-  pba->N_uv_step = pba->N_ir_step * pow(1+pba->rg_step, 1/3);
+  pba->N_uv_step = pba->N_ir_step / pow(1+pba->rg_step, 1/3);
 
   /* End stepped fluid modification */
 
