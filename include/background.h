@@ -9,7 +9,6 @@
 #include "arrays.h"
 #include "dei_rkck.h"
 #include "parser.h"
-
 /** list of possible types of spatial curvature */
 
 enum spatial_curvature {flat,open,closed};

@@ -600,6 +600,7 @@ int background_functions(
 
     // Add stepped fluid to total density and pressure contributions
     rho_tot += rho_stepped_fld;
+    rho_r += rho_stepped_fld;
     p_tot += w_stepped_fld * rho_stepped_fld;
 
     // Dummy place holder, don't really know what to do with dp_dloga yet...
@@ -812,20 +813,32 @@ int background_stepped_fld(
                            double *rho,                           
                            double *w,                           
                            double *cs2){
-  /* Dummy place holders */
-  *rho=0;  
 
-  double x, rhohat, phat, N;
+  double x, k1, k2, rhohat, phat, N;
   double w_local, cs2_local, rho_local;
-  x = 0; /* Pretend to solve x at current scale factor a */
-  rhohat = 1;
-  phat = 1;
+  x = 1e-8; /* Pretend to solve x at current scale factor a */
+   
+  // Compute dimensionless rhohat and phat parameters with x and modified Bessel results.
+  //k1 = gsl_sf_bessel_K1(x);
+  //k2 = gsl_sf_bessel_Kn(2, x);
+  
+  // Compute n=1, 2 modified Bessel functions of 2nd kind using approximation from Caruso and Silveira 2020.
+  k1 = pow(_E_, -x)*(16./7.+1./x-467144.*x/765765.+373696.*pow(x,2.)/765765.-37372.*pow(x,3.)/153153.+22688.*pow(x,4.)/328185.-1168.*pow(x,5.)/109395.+32.*pow(x,6.)/38675.-2.*pow(x,7.)/80325.);
 
-  w_local = 1/3 - (pba->rg_step/3)*(rhohat-phat)/(1+pba->rg_step*rhohat);
-  cs2_local = 1/3 - (pba->rg_step/36)*(pow(x,2)*phat)/(1+pba->rg_step*(3/4*rhohat+(1/4+pow(x,2)/12)*phat));
+  k2 = pow(_E_, -x)*(784./1615.+2./pow(x,2.)+3232./(1615.*x)-448.*x/4845.+5416744.*pow(x,2.)/190855665.-93376.*pow(x,3.)/14549535.+27424.*pow(x,4.)/31177575.-512.*pow(x,5.)/8083075.+4.*pow(x,6.)/2204475.);
+
+  rhohat = pow(x,2.)/2.*k2+pow(x,3.)/6.*k1;
+  phat = pow(x,2.)/2.*k2;
+  //rhohat = 0.;
+  //phat=0.;
+
+  w_local = 1./3. - (pba->rg_step/3.)*(rhohat-phat)/(1+pba->rg_step*rhohat);
+  cs2_local = 1./3. - (pba->rg_step/36.)*(pow(x,2.)*phat)/(1+pba->rg_step*(3./4.*rhohat+(1./4.+pow(x,2.)/12.)*phat));
   
   // Fluid density via neutrino density and definition of delta N_eff.
-  N = pba->N_ir_step*(1+pba->rg_step*rhohat)/pow(1+pba->rg_step*(3/4*rhohat+1/4*phat), 4/3);
+  N = pba->N_ir_step*(1+pba->rg_step*rhohat)/pow(1+pba->rg_step*(3./4.*rhohat+1./4.*phat), 4./3.);  
+  printf("%g \n", pba->N_uv_step);
+  printf("%g \n", N);
   rho_local = rho_ur * N;
 
   *rho = rho_local;
