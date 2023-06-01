@@ -67,6 +67,15 @@ typedef char FileName[_FILENAMESIZE_];
 
 #define _DELIMITER_ "\t" /**< character used for delimiting titles in the title strings */
 
+/* Stepped fluid modification */
+
+#define _SECANT_MAX_ 100000 /**< Maximum iterations for secant method root finding */
+
+#define _SECANT_TOL_ 1.e-5 /**< Terminating tolerance for secant method root finding */
+
+/* End stepped fluid modification */
+
+
 #ifndef __CLASSDIR__
 #define __CLASSDIR__ "." /**< The directory of CLASS. This is set to the absolute path to the CLASS directory so this is just a failsafe. */
 #endif
@@ -92,6 +101,16 @@ int file_exists(const char *fname);
 int compare_doubles(const void * a,
                     const void * b);
 int string_begins_with(char* thestring, char beginchar);
+
+/* Stepped fluid modification */
+
+double rhohat(double x);
+double phat(double x);
+double _secant_method(double x0, double x1, double a, double at, double rg);
+double _f_(double x, double a, double at, double rg);
+double solve_x_of_a(double a, double at, double rg);
+
+/* End stepped fluid modification */
 
 /* general CLASS macros */
 

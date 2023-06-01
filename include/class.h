@@ -7,9 +7,6 @@
 #include "math.h"
 #include "string.h"
 #include "float.h"
-/* Stepped fluid modification */
-//#include "gsl/gsl_sf_bessel.h"
-/* End stepped fluid modification */
 #ifdef _OPENMP
 #include "omp.h"
 #endif
