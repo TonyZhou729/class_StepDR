@@ -44,7 +44,7 @@ OMPFLAG   = -fopenmp
 
 # all other compilation flags
 CCFLAG = -g -fPIC
-LDFLAG = -g -fPIC
+LDFLAG = -g -fPIC -lgsl -lgslcblas -lm 
 
 # leave blank to compile without HyRec, or put path to HyRec directory
 # (with no slash at the end: e.g. "external/RecfastCLASS")
@@ -156,7 +156,7 @@ libclass.a: $(TOOLS) $(SOURCE) $(EXTERNAL)
 	$(AR)  $@ $(addprefix build/, $(TOOLS) $(SOURCE) $(EXTERNAL))
 
 class: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(CLASS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm
+	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lgsl -lm
 
 test_loops: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_LOOPS)
 	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o $@ $(addprefix build/,$(notdir $^)) -lm
