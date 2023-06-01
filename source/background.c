@@ -818,17 +818,6 @@ int background_stepped_fld(
   double w_local, cs2_local, rho_local;
   x = solve_x_of_a(a, 1/(1+pba->z_step), pba->rg_step);  
   
-  /*
-  // Compute dimensionless rhohat and phat parameters with x and modified Bessel results.
-  k1 = gsl_sf_bessel_K1(x);
-  k2 = gsl_sf_bessel_Kn(2, x);  
-  
-  // Compute n=1, 2 modified Bessel functions of 2nd kind using approximation from Caruso and Silveira 2020.
-  //k1 = pow(_E_, -x)*(16./7.+1./x-467144.*x/765765.+373696.*pow(x,2.)/765765.-37372.*pow(x,3.)/153153.+22688.*pow(x,4.)/328185.-1168.*pow(x,5.)/109395.+32.*pow(x,6.)/38675.-2.*pow(x,7.)/80325.);
-
-  //k2 = pow(_E_, -x)*(784./1615.+2./pow(x,2.)+3232./(1615.*x)-448.*x/4845.+5416744.*pow(x,2.)/190855665.-93376.*pow(x,3.)/14549535.+27424.*pow(x,4.)/31177575.-512.*pow(x,5.)/8083075.+4.*pow(x,6.)/2204475.);
-  */
-
   rh = rhohat(x);
   ph = phat(x);  
 
@@ -838,7 +827,7 @@ int background_stepped_fld(
   // Fluid density via neutrino density and definition of delta N_eff.
   N = pba->N_ir_step*(1+pba->rg_step*rh)/pow(1+pba->rg_step*(3./4.*rh+1./4.*ph), 4./3.);  
   //printf("%g \n", pba->N_uv_step);
-  printf("%g \n", N);
+  //printf("%g at %g ", w_local, 1./a-1.);
   rho_local = rho_ur/3.044 * N; // Weight by just 1 neutrino flavor! Not all 3!
 
   *rho = rho_local;

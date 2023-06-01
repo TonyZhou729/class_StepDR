@@ -1315,6 +1315,14 @@ int perturbations_indices(
   ppt->has_source_theta_idr = _FALSE_;
   ppt->has_source_theta_ncdm = _FALSE_;
   ppt->has_source_theta_tot = _FALSE_;
+  
+  /* Stepped fluid modification */
+
+  ppt->has_source_delta_stepped_fld = _FALSE_;
+  ppt->has_source_theta_stepped_fld = _FALSE_;
+
+  /* End stepped fluid modification */
+  
   ppt->has_source_phi = _FALSE_;
   ppt->has_source_phi_prime = _FALSE_;
   ppt->has_source_phi_plus_psi = _FALSE_;
@@ -1412,6 +1420,14 @@ int perturbations_indices(
           ppt->has_source_delta_dr = _TRUE_;
         if (pba->has_ncdm == _TRUE_)
           ppt->has_source_delta_ncdm = _TRUE_;
+        
+        /* Stepped fluid modification */
+        
+        if (pba->has_stepped_fld == _TRUE_)
+          ppt->has_source_delta_stepped_fld = _TRUE_;
+          
+        /* End stepped fluid modification */
+
         // Thanks to the following lines, (phi,psi) are also stored as sources
         // (Obtained directly in newtonian gauge, infereed from (h,eta) in synchronous gauge).
         // If density transfer functions are requested in the (default) CLASS format,
@@ -1441,6 +1457,14 @@ int perturbations_indices(
           ppt->has_source_theta_idr = _TRUE_;
         if (pba->has_dr == _TRUE_)
           ppt->has_source_theta_dr = _TRUE_;
+        
+        /* Stepped fluid modification */
+        
+        if (pba->has_stepped_fld == _TRUE_)
+          ppt->has_source_theta_stepped_fld = _TRUE_;
+          
+        /* End stepped fluid modification */
+        
         if (pba->has_ncdm == _TRUE_)
           ppt->has_source_theta_ncdm = _TRUE_;
       }
@@ -1511,6 +1535,9 @@ int perturbations_indices(
       class_define_index(ppt->index_tp_delta_scf,  ppt->has_source_delta_scf, index_type,1);
       class_define_index(ppt->index_tp_delta_dr,   ppt->has_source_delta_dr,  index_type,1);
       class_define_index(ppt->index_tp_delta_ur,   ppt->has_source_delta_ur,  index_type,1);
+      /* Stepped fluid modification */
+      class_define_index(ppt->index_tp_delta_stepped_fld, ppt->has_source_delta_stepped_fld, index_type,1);
+      /* End stepped fluid modification */
       class_define_index(ppt->index_tp_delta_idr,  ppt->has_source_delta_idr, index_type,1);
       class_define_index(ppt->index_tp_delta_ncdm1,ppt->has_source_delta_ncdm,index_type,pba->N_ncdm);
       class_define_index(ppt->index_tp_theta_m,    ppt->has_source_theta_m,   index_type,1);
@@ -1525,6 +1552,9 @@ int perturbations_indices(
       class_define_index(ppt->index_tp_theta_scf,  ppt->has_source_theta_scf, index_type,1);
       class_define_index(ppt->index_tp_theta_dr,   ppt->has_source_theta_dr,  index_type,1);
       class_define_index(ppt->index_tp_theta_ur,   ppt->has_source_theta_ur,  index_type,1);
+      /* Stepped fluid modification */
+      class_define_index(ppt->index_tp_theta_stepped_fld, ppt->has_source_theta_stepped_fld, index_type,1);
+      /* End stepped fluid modification */
       class_define_index(ppt->index_tp_theta_idr,  ppt->has_source_theta_idr, index_type,1);
       class_define_index(ppt->index_tp_theta_ncdm1,ppt->has_source_theta_ncdm,index_type,pba->N_ncdm);
       class_define_index(ppt->index_tp_phi,        ppt->has_source_phi,       index_type,1);
@@ -3452,6 +3482,13 @@ int perturbations_prepare_k_output(struct background * pba,
       class_store_columntitle(ppt->scalar_titles, "rho_plus_p_theta_fld", pba->has_fld);
       class_store_columntitle(ppt->scalar_titles, "delta_p_fld", pba->has_fld);
 
+      /* Stepped fluid modification */
+
+      class_store_columntitle(ppt->scalar_titles, "delta_stepped_fld", pba->has_stepped_fld);
+      class_store_columntitle(ppt->scalar_titles, "theta_stepped_fld", pba->has_stepped_fld);      
+
+      /* End stepped fluid modification */
+
       ppt->number_of_scalar_titles =
         get_number_of_titles(ppt->scalar_titles);
     }
@@ -4060,6 +4097,15 @@ int perturbations_vector_init(
         class_define_index(ppv->index_pt_l3_ur,_TRUE_,index_pt,ppv->l_max_ur-2); /* additional momenta in Boltzmann hierarchy (beyond l=0,1,2,3) */
       }
     }
+
+    /* Stepped fluid modification */
+
+    if (pba->has_stepped_fld){
+      class_define_index(ppv->index_pt_delta_stepped_fld,_TRUE_,index_pt,1); /* density of stepped fluid */
+      class_define_index(ppv->index_pt_theta_stepped_fld,_TRUE_,index_pt,1); /* velocity of stepped fluid */
+    }
+
+    /* End stepped fluid modification */
 
     /* interacting dark radiation */
 

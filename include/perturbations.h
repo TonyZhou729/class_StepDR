@@ -259,6 +259,14 @@ struct perturbations
   short has_source_theta_dr;   /**< do we need source for theta of ultra-relativistic neutrinos/relics? */
   short has_source_theta_ur;   /**< do we need source for theta of ultra-relativistic neutrinos/relics? */
   short has_source_theta_ncdm; /**< do we need source for theta of all non-cold dark matter species (e.g. massive neutrinos)? */
+  
+  /* Stepped fluid modification */
+
+  short has_source_delta_stepped_fld; /**< do we need source for delta of stepped fluid? */
+  short has_source_theta_stepped_fld; /**< do we need source for theta of stepped fluid? */
+
+  /* End stepped fluid modification */
+  
   short has_source_phi;        /**< do we need source for metric fluctuation phi? */
   short has_source_phi_prime;  /**< do we need source for metric fluctuation phi'? */
   short has_source_phi_plus_psi; /**< do we need source for metric fluctuation (phi+psi)? */
@@ -310,6 +318,13 @@ struct perturbations
   int index_tp_theta_idm;   /**< index value for theta of interacting dark matter */
   int index_tp_theta_dr;    /**< index value for F1 of decay radiation */
   int index_tp_theta_ncdm1; /**< index value for theta of first non-cold dark matter species (e.g. massive neutrinos) */
+
+  /* Stepped fluid modification */
+
+  int index_tp_delta_stepped_fld;  /**< index value for delta of stepped fluid */
+  int index_tp_theta_stepped_fld;  /**< index value for theta of stepped fluid */
+
+  /* End stepped fluid modification */
 
   int index_tp_phi;          /**< index value for metric fluctuation phi */
   int index_tp_phi_prime;    /**< index value for metric fluctuation phi' */
@@ -485,6 +500,13 @@ struct perturbations_vector
   int index_pt_shear_idr; /**< shear of interacting dark radiation */
   int index_pt_l3_idr;    /**< l=3 of interacting dark radiation */
   int l_max_idr;          /**< max momentum in Boltzmann hierarchy (at least 3) for interacting dark radiation */
+
+  /* Stepped fluid modification */
+
+  int index_pt_delta_stepped_fld;
+  int index_pt_theta_stepped_fld;
+
+  /* End stepped fluid modification */
 
   /* perturbed recombination */
   int index_pt_perturbed_recombination_delta_temp;		/**< Gas temperature perturbation */
