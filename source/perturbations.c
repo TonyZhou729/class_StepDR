@@ -4551,6 +4551,24 @@ int perturbations_vector_init(
         }
       }
 
+      /* Stepped fluid modification */
+      
+      /*
+       * Here it is assumed that no streaming approximations are used for stepped fluid.
+       * This is obviously inefficient, a future implementation should be added, in which case
+       * THIS SECTION MUST BE MODIFIED.
+       */
+
+      if (pba->has_stepped_fld == _TRUE_) {
+        ppv->y[ppv->index_pt_delta_stepped_fld] = 
+          ppw->pv->y[ppw->pv->index_pt_delta_stepped_fld];
+        
+        ppv->y[ppv->index_pt_theta_stepped_fld] = 
+          ppw->pv->y[ppw->pv->index_pt_theta_stepped_fld];
+      }
+
+      /* End stepped fluid modification */
+
       if (pba->has_scf == _TRUE_) {
 
         ppv->y[ppv->index_pt_phi_scf] =
@@ -5425,6 +5443,13 @@ int perturbations_initial_conditions(struct precision * ppr,
   double om;
   double ktau_two,ktau_three;
   double f_dr;
+  
+  /* Stepped fluid modification */
+
+  double delta_stepped_fld=0., theta_stepped_fld=0.;
+  double frac_stepped_fld=0.;
+
+  /* End stepped fluid modification */
 
   double delta_tot;
   double velocity_tot;
@@ -5482,6 +5507,16 @@ int perturbations_initial_conditions(struct precision * ppr,
       rho_nu += ppw->pvecback[pba->index_bg_rho_ur];
     }
 
+    /* Stepped fluid modification */
+
+    /* Stepped fluid should contribute to both radiation and ultra-rel energy densitites. */
+    if (pba->has_stepped_fld == _TRUE_){
+      rho_r += ppw->pvecback[pba->index_bg_rho_stepped_fld];
+      rho_nu += ppw->pvecback[pba->index_bg_rho_stepped_fld]; 
+    }
+
+    /* End stepped fluid modification */
+
     if (pba->has_idr == _TRUE_) {
       rho_r += ppw->pvecback[pba->index_bg_rho_idr];
       rho_nu += ppw->pvecback[pba->index_bg_rho_idr];
@@ -5515,6 +5550,12 @@ int perturbations_initial_conditions(struct precision * ppr,
     if (pba->has_idm == _TRUE_){
       fracidm =  ppw->pvecback[pba->index_bg_rho_idm]/rho_m;
     }
+
+    /* Stepped fluid modification */
+    if (pba->has_stepped_fld == _TRUE_){
+      frac_stepped_fld = ppw->pvecback[pba->index_bg_rho_stepped_fld]/rho_r;
+    }
+    /* End stepped fluid modification */
 
     /* Omega_m(t_i) / Omega_r(t_i) */
     rho_m_over_rho_r = rho_m/rho_r;
@@ -5637,6 +5678,21 @@ int perturbations_initial_conditions(struct precision * ppr,
 
         if (pba->has_dr == _TRUE_) delta_dr = delta_ur;
       }
+
+      /* Stepped fluid modification */
+      
+      /* Here we assume that all modes start outside the horizon, and we simply match the 
+       * adiabatic initial conditions of the stepped fluid to that of other relativisic relics.
+       */
+      if (pba->has_stepped_fld){
+        /* Stepped fluid density */
+        delta_stepped_fld = ppw->pv->y[ppw->pv->index_pt_delta_g];
+        
+        /* Stepped fluid velocity */
+        theta_stepped_fld = - k*ktau_three/36./(4.*frac_stepped_fld+15.) * (4.*frac_stepped_fld+11.+12.*s2_squared-3.*(8.*frac_stepped_fld*frac_stepped_fld+50.*frac_stepped_fld+275.)/20./(2.*frac_stepped_fld+15.)*tau*om) * ppr->curvature_ini * s2_squared; 
+      }
+
+      /* End stepped fluid modification */
 
       /* synchronous metric perturbation eta */
       //eta = ppr->curvature_ini * (1.-ktau_two/12./(15.+4.*fracnu)*(5.+4.*fracnu - (16.*fracnu*fracnu+280.*fracnu+325)/10./(2.*fracnu+15.)*tau*om)) /  s2_squared;
@@ -5921,6 +5977,15 @@ int perturbations_initial_conditions(struct precision * ppr,
       ppw->pv->y[ppw->pv->index_pt_l3_ur] = l3_ur;
 
     }
+
+    /* Stepped fluid modification */
+
+    if (pba->has_stepped_fld == _TRUE_){
+      ppw->pv->y[ppw->pv->index_pt_delta_stepped_fld] = delta_stepped_fld;
+      ppw->pv->y[ppw->pv->index_pt_theta_stepped_fld] = theta_stepped_fld;
+    }
+    
+    /* End stepped fluid modification */
 
     if (pba->has_idr == _TRUE_){
       if (ppw->approx[ppw->index_ap_rsa_idr]==(int)rsa_idr_off) { // TODO: check if needed?
