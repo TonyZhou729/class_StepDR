@@ -8088,6 +8088,15 @@ int perturbations_sources(
           + 4.*a_prime_over_a*theta_over_k2; // N-body gauge correction
     }
 
+    /* Stepped fluid modification */
+
+    if (ppt->has_source_delta_stepped_fld == _TRUE_){
+      _set_source_(ppt->index_tp_delta_stepped_fld) = y[ppw->pv->index_pt_delta_stepped_fld]
+        + 4.*a_prime_over_a*theta_over_k2; // N-body gauge correction
+    }
+
+    /* End stepped fluid modification */
+
     /* delta_ncdm1 */
     if (ppt->has_source_delta_ncdm == _TRUE_) {
       for (index_tp = ppt->index_tp_delta_ncdm1; index_tp < ppt->index_tp_delta_ncdm1+pba->N_ncdm; index_tp++) {
@@ -8200,6 +8209,15 @@ int perturbations_sources(
         _set_source_(ppt->index_tp_theta_idr) = ppw->rsa_theta_idr
           + theta_shift; // N-body gauge correction
     }
+    
+    /* Stepped fluid modification */
+
+    if (ppt->has_source_theta_stepped_fld == _TRUE_){
+      _set_source_(ppt->index_tp_theta_stepped_fld) = y[ppw->pv->index_pt_theta_stepped_fld]
+        + theta_shift; // N-body gauge correction
+    }
+
+    /* End stepped fluid modification */
 
     /* theta_ncdm1 */
     if (ppt->has_source_theta_ncdm == _TRUE_) {
@@ -9703,7 +9721,7 @@ int perturbations_derivs(double tau,
     if (pba->has_stepped_fld == _TRUE_){
       /* Density: $\dot{\delta} = -(1+w)(\theta + \frac{\dot{h}}{2}) - 3\mathcal{H}(c_s^2-w)\delta */ 
       dy[pv->index_pt_delta_stepped_fld] = 
-        -(1,+w_stepped_fld)*(theta_stepped_fld+metric_continuity) - 
+        -(1.+w_stepped_fld)*(theta_stepped_fld+metric_continuity) - 
         3.*a_prime_over_a*(cs2_stepped_fld-w_stepped_fld)*delta_stepped_fld;
 
       /* Velocity: $\dot{\theta} = \frac{k^2 c_s^2}{1+w}\delta - \mathcal{H}(1-3c_s^2)\theta */
