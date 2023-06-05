@@ -3249,12 +3249,6 @@ int input_read_parameters_species(struct file_content * pfc,
       else if ((strstr(string1,"EDE") != NULL) || (strstr(string1,"ede") != NULL)) {
         pba->fluid_equation_of_state = EDE;
       }
-      // ZMODIFY: Added onestep fluid at input level.
-      else if ((strstr(string1,"ONESTEP") != NULL) || (strstr(string1,"onestep") != NULL)) {
-        printf("onestep triggered.");
-        pba->fluid_equation_of_state = onestep; 
-        //class_stop(errmsg,"onestep successfully implemented.")
-      }
       else {
         class_stop(errmsg,"incomprehensible input '%s' for the field 'fluid_equation_of_state'",string1);        
       }

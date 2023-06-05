@@ -14,8 +14,7 @@
 enum spatial_curvature {flat,open,closed};
 
 /** list of possible parametrisations of the DE equation of state */
-// ZMODIFY: added onestep as possible fluid eq of state.
-enum equation_of_state {CLP,EDE,onestep};
+enum equation_of_state {CLP,EDE};
 
 
 /** list of possible parametrizations of the varying fundamental constants */

@@ -740,10 +740,6 @@ int background_w_fld(
     // w_ede(a) taken from eq. (11) in 1706.00730
     *w_fld = - dOmega_ede_over_da*a/Omega_ede/3./(1.-Omega_ede)+a_eq/3./(a+a_eq);
     break;
-  // ZMODIFY: Add new fluid type, WZDR with 1 stepping redshift
-  case onestep:
-    class_stop(pba->error_message,"onestep fluid yet to be implemented\n"); 
-    break;
   }
 
   /** - then, give the corresponding analytic derivative dw/da (used
