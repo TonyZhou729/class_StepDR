@@ -2561,6 +2561,14 @@ int background_output_titles(
   class_store_columntitle(titles,"(.)rho_dcdm",pba->has_dcdm);
   class_store_columntitle(titles,"(.)rho_dr",pba->has_dr);
 
+  /* Stepped fluid modification */
+
+  class_store_columntitle(titles,"(.)rho_stepped_fld",pba->has_stepped_fld);  
+  class_store_columntitle(titles,"w_stepped_fld",pba->has_stepped_fld);  
+  class_store_columntitle(titles,"cs2_stepped_fld",pba->has_stepped_fld);  
+
+  /* End stepped fluid modification */
+
   class_store_columntitle(titles,"(.)rho_scf",pba->has_scf);
   class_store_columntitle(titles,"(.)p_scf",pba->has_scf);
   class_store_columntitle(titles,"(.)p_prime_scf",pba->has_scf);
@@ -2633,6 +2641,14 @@ int background_output_data(
     class_store_double(dataptr,pvecback[pba->index_bg_rho_crit],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_dcdm],pba->has_dcdm,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_dr],pba->has_dr,storeidx);
+
+    /* Stepped fluid modification */
+    
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_stepped_fld],pba->has_stepped_fld,storeidx); 
+    class_store_double(dataptr,pvecback[pba->index_bg_w_stepped_fld],pba->has_stepped_fld,storeidx); 
+    class_store_double(dataptr,pvecback[pba->index_bg_cs2_stepped_fld],pba->has_stepped_fld,storeidx); 
+
+    /* End stepped fluid modification */
 
     class_store_double(dataptr,pvecback[pba->index_bg_rho_scf],pba->has_scf,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_p_scf],pba->has_scf,storeidx);
