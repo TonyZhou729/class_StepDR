@@ -4579,6 +4579,9 @@ int perturbations_vector_init(
         
         ppv->y[ppv->index_pt_theta_stepped_fld] = 
           ppw->pv->y[ppw->pv->index_pt_theta_stepped_fld];
+
+        //printf("%g:%g ", k, ppv->y[ppv->index_pt_theta_stepped_fld]);
+
       }
 
       /* End stepped fluid modification */
@@ -4677,6 +4680,8 @@ int perturbations_vector_init(
               }
             }
           }
+
+        //printf("%g:%g ", k, ppv->y[ppv->index_pt_theta_idr]);
         }
 
         if (pba->has_ncdm == _TRUE_) {
@@ -5566,6 +5571,8 @@ int perturbations_initial_conditions(struct precision * ppr,
     }
 
     /* Stepped fluid modification */
+
+    // May be obsolete
     if (pba->has_stepped_fld == _TRUE_){
       frac_stepped_fld = ppw->pvecback[pba->index_bg_rho_stepped_fld]/rho_r;
     }
@@ -5679,7 +5686,9 @@ int perturbations_initial_conditions(struct precision * ppr,
 
       /* all relativistic relics: ur, early ncdm, dr */
 
-      if ((pba->has_ur == _TRUE_) || (pba->has_ncdm == _TRUE_) || (pba->has_dr == _TRUE_) || (pba->has_idr == _TRUE_)) {
+      /* Stepped fluid modification */
+      if ((pba->has_ur == _TRUE_) || (pba->has_ncdm == _TRUE_) || (pba->has_dr == _TRUE_) || (pba->has_idr == _TRUE_) || (pba->has_stepped_fld == _TRUE_)) {
+      /* End stepped fluid modification */
 
         delta_ur = ppw->pv->y[ppw->pv->index_pt_delta_g]; /* density of ultra-relativistic neutrinos/relics */
 
@@ -5698,14 +5707,16 @@ int perturbations_initial_conditions(struct precision * ppr,
       /* Here we assume that all modes start outside the horizon, and we simply match the 
        * adiabatic initial conditions of the stepped fluid to that of other relativisic relics.
        */
+      
+      /*
       if (pba->has_stepped_fld){
-        /* Stepped fluid density */
+        // Stepped fluid density
         delta_stepped_fld = ppw->pv->y[ppw->pv->index_pt_delta_g];
         
-        /* Stepped fluid velocity */
+        // Stepped fluid velocity
         theta_stepped_fld = - k*ktau_three/36./(4.*frac_stepped_fld+15.) * (4.*frac_stepped_fld+11.+12.*s2_squared-3.*(8.*frac_stepped_fld*frac_stepped_fld+50.*frac_stepped_fld+275.)/20./(2.*frac_stepped_fld+15.)*tau*om) * ppr->curvature_ini * s2_squared; 
-      }
-
+      }   
+      */
       /* End stepped fluid modification */
 
       /* synchronous metric perturbation eta */
@@ -5995,8 +6006,10 @@ int perturbations_initial_conditions(struct precision * ppr,
     /* Stepped fluid modification */
 
     if (pba->has_stepped_fld == _TRUE_){
-      ppw->pv->y[ppw->pv->index_pt_delta_stepped_fld] = delta_stepped_fld;
-      ppw->pv->y[ppw->pv->index_pt_theta_stepped_fld] = theta_stepped_fld;
+      //ppw->pv->y[ppw->pv->index_pt_delta_stepped_fld] = delta_stepped_fld;
+      //ppw->pv->y[ppw->pv->index_pt_theta_stepped_fld] = theta_stepped_fld;
+      ppw->pv->y[ppw->pv->index_pt_delta_stepped_fld] = delta_ur;
+      ppw->pv->y[ppw->pv->index_pt_theta_stepped_fld] = theta_ur;
     }
     
     /* End stepped fluid modification */
@@ -7083,6 +7096,8 @@ int perturbations_total_stress_energy(
       delta_stepped_fld = y[ppw->pv->index_pt_delta_stepped_fld];
       theta_stepped_fld = y[ppw->pv->index_pt_theta_stepped_fld];
       
+      //printf("%g ", theta_stepped_fld);
+
       // Background quantities
       rho_stepped_fld = ppw->pvecback[pba->index_bg_rho_stepped_fld]; // Stepped fluid density
       w_stepped_fld = ppw->pvecback[pba->index_bg_w_stepped_fld]; // Stepped fluid eq. of state
@@ -8496,6 +8511,7 @@ int perturbations_print_variables(double tau,
     if(pba->has_stepped_fld == _TRUE_) {
       delta_stepped_fld = y[ppw->pv->index_pt_delta_stepped_fld];
       theta_stepped_fld = y[ppw->pv->index_pt_theta_stepped_fld];
+      //printf("%g ", theta_stepped_fld);
     }
 
     /* End stepped fluid modification */
@@ -8728,12 +8744,6 @@ int perturbations_print_variables(double tau,
     class_store_double(dataptr, delta_ur, pba->has_ur, storeidx);
     class_store_double(dataptr, theta_ur, pba->has_ur, storeidx);
     class_store_double(dataptr, shear_ur, pba->has_ur, storeidx);
-    
-    /* Stepped fluid modification */
-    class_store_double(dataptr, delta_stepped_fld, pba->has_stepped_fld, storeidx);
-    class_store_double(dataptr, theta_stepped_fld, pba->has_stepped_fld, storeidx);
-    /* End stepped fluid modification */
-    
     /* Interacting dark radiation */
     class_store_double(dataptr, delta_idr, pba->has_idr, storeidx);
     class_store_double(dataptr, theta_idr, pba->has_idr, storeidx);
@@ -8768,6 +8778,15 @@ int perturbations_print_variables(double tau,
     class_store_double(dataptr, ppw->delta_rho_fld, pba->has_fld, storeidx);
     class_store_double(dataptr, ppw->rho_plus_p_theta_fld, pba->has_fld, storeidx);
     class_store_double(dataptr, ppw->delta_p_fld, pba->has_fld, storeidx);
+    /* Stepped fluid modification */
+    class_store_double(dataptr, delta_stepped_fld, pba->has_stepped_fld, storeidx);
+    class_store_double(dataptr, theta_stepped_fld, pba->has_stepped_fld, storeidx);
+    /*
+    if (abs(theta_stepped_fld)>1){
+      printf("k=%g:theta=%g\n", k,theta_stepped_fld);
+    }
+    */
+    /* End stepped fluid modification */
     //fprintf(ppw->perturbations_output_file,"\n");
 
   }
