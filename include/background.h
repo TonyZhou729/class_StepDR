@@ -110,10 +110,10 @@ struct background
   
   /* Stepped fluid modification */
   
-  double N_ir_step; /**< \f$ N_{\rm IR, step} \f$: Late time (IR) effective UR d.o.f of stepped fluid */  
-  double N_uv_step; /**< \f$ N_{\rm UV, step} \f$: Early time (UV) effective UR d.o.f of stepped fluid */
-  double z_step; /**< \f$ z_{\rm step} \f$: Fluid stepping redshift */
-  double rg_step; /**< \f$ r_g \f$: Fluid step size parameter, set by model */
+  double N_ir_stepped_fld; /**< \f$ N_{\rm IR, step} \f$: Late time (IR) effective UR d.o.f of stepped fluid */  
+  double N_uv_stepped_fld; /**< \f$ N_{\rm UV, step} \f$: Early time (UV) effective UR d.o.f of stepped fluid */
+  double zt_stepped_fld; /**< \f$ z_{\rm step} \f$: Fluid stepping redshift */
+  double rg_stepped_fld; /**< \f$ r_g \f$: Fluid step size parameter, set by model */
 
   /* End stepped fluid modification */
   

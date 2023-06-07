@@ -2678,13 +2678,10 @@ int input_read_parameters_species(struct file_content * pfc,
   /* For now assume that N_IR, rg are inputs, and use them to deduce N_UV.
    * May generalize to accepting any 2 of the 3 later. */
 
-  class_read_double("N_ir_step", pba->N_ir_step);
-  class_read_double("z_step", pba->z_step);
-  class_read_double("rg_step", pba->rg_step);
-  if (pba->N_ir_step != 0)
-    printf("Input contains stepped fluid with N_IR=%e, z_step=%e and rg_step=%e", pba->N_ir_step, pba->z_step, pba->rg_step);
-
-  pba->N_uv_step = pba->N_ir_step / pow(1+pba->rg_step, 1./3.);
+  class_read_double("N_ir_stepped_fld", pba->N_ir_stepped_fld);
+  class_read_double("zt_stepped_fld", pba->zt_stepped_fld);
+  class_read_double("rg_stepped_fld", pba->rg_stepped_fld);  
+  pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1+pba->rg_stepped_fld, 1./3.);
 
   /* End stepped fluid modification */
 
@@ -5780,10 +5777,10 @@ int input_default_params(struct background *pba,
 
   /* Stepped fluid modification */
   
-  pba->N_ir_step = 0.;
-  pba->N_uv_step = 0.;
-  pba->z_step = 0;
-  pba->rg_step = 0;
+  pba->N_ir_stepped_fld = 0.;
+  pba->N_uv_stepped_fld = 0.;
+  pba->zt_stepped_fld = 0;
+  pba->rg_stepped_fld = 0;
 
   /* End stepped fluid modification */
 

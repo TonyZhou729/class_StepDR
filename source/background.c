@@ -594,7 +594,7 @@ int background_functions(
                                       &cs2_stepped_fld),
                pba->error_message,
                pba->error_message);
-    pvecback[pba->index_bg_rho_stepped_fld] = rho_stepped_fld;
+    pvecback[pba->index_bg_rho_stepped_fld] = rho_stepped_fld;    
     pvecback[pba->index_bg_w_stepped_fld] = w_stepped_fld;
     pvecback[pba->index_bg_cs2_stepped_fld] = cs2_stepped_fld;
 
@@ -812,24 +812,22 @@ int background_stepped_fld(
 
   double x, k1, k2, rh, ph, N;
   double w_local, cs2_local, rho_local;
-  x = solve_x_of_a(a, 1/(1+pba->z_step), pba->rg_step);  
+  x = solve_x_of_a(a, 1/(1+pba->zt_stepped_fld), pba->rg_stepped_fld);  
   
   rh = rhohat(x);
   ph = phat(x);  
 
-  w_local = 1./3. - (pba->rg_step/3.)*(rh-ph)/(1+pba->rg_step*rh);
-  cs2_local = 1./3. - (pba->rg_step/36.)*(pow(x,2.)*ph)/(1+pba->rg_step*(3./4.*rh+(1./4.+pow(x,2.)/12.)*ph));
+  w_local = 1./3. - (pba->rg_stepped_fld/3.)*(rh-ph)/(1+pba->rg_stepped_fld*rh);
+  cs2_local = 1./3. - (pba->rg_stepped_fld/36.)*(pow(x,2.)*ph)/(1+pba->rg_stepped_fld*(3./4.*rh+(1./4.+pow(x,2.)/12.)*ph));
   
   // Fluid density via neutrino density and definition of delta N_eff.
-  N = pba->N_ir_step*(1+pba->rg_step*rh)/pow(1+pba->rg_step*(3./4.*rh+1./4.*ph), 4./3.);  
-  //printf("%g \n", pba->N_uv_step);
-  //printf("%g at %g ", w_local, 1./a-1.);
+  N = pba->N_ir_stepped_fld*(1+pba->rg_stepped_fld*rh)/pow(1+pba->rg_stepped_fld*(3./4.*rh+1./4.*ph), 4./3.);    
   rho_local = rho_ur/3.044 * N; // Weight by just 1 neutrino flavor! Not all 3!
 
   *rho = rho_local;
   *w = w_local;
   *cs2 = cs2_local;
-
+    
   return _SUCCESS_;
 }
 
@@ -1074,7 +1072,7 @@ int background_indices(
 
   pba->has_stepped_fld = _FALSE_;
 
-  if (pba->N_ir_step != 0.)
+  if (pba->N_ir_stepped_fld != 0.)
     pba->has_stepped_fld = _TRUE_;
 
   /* End stepped fluid modification */
@@ -1846,6 +1844,12 @@ int background_checks(
   double N_dark;
   double w_fld, dw_over_da, integral_fld;
   int filenum=0;
+  
+  /* Stepped fluid modification */
+
+  double N_stepped_fld;
+
+  /* End stepped fluid modification */
 
   /** - control that we have photons and baryons in the problem */
   class_test((pba->Omega0_g<=0) || (pba->Omega0_b<=0),
@@ -1958,6 +1962,13 @@ int background_checks(
       N_dark = pba->Omega0_idr/7.*8./pow(4./11.,4./3.)/pba->Omega0_g;
       printf(" -> dark radiation Delta Neff %e\n",N_dark);
     }
+
+    /* Stepped fluid modification */
+    
+    /* contribution of stepped fluid to N_eff */
+    
+    /* End stepped fluid modification */
+
   }
 
   return _SUCCESS_;
@@ -2252,6 +2263,13 @@ int background_initial_conditions(
   double scf_lambda;
   double rho_fld_today;
   double w_fld,dw_over_da_fld,integral_fld;
+  
+  /* Stepped fluid modification */
+
+  // Call background_stepped_fld() to get density and add to relativistic contributions.
+  double rho_stepped_fld;
+  
+  /* End stepped fluid modification */
 
   /** - fix initial value of \f$ a \f$ */
   a = ppr->a_ini_over_a_today_default;
@@ -2312,7 +2330,32 @@ int background_initial_conditions(
   if (pba->has_ncdm == _TRUE_) {
     /** - We must add the relativistic contribution from NCDM species */
     rho_rad += rho_ncdm_rel_tot;
+  }  
+
+  /* Stepped fluid modification */
+
+  /* 
+  if (pba->has_stepped_fld == _TRUE_) {
+    double rho_ur_tot = rho_rad; //- pba->Omega0_g*pow(pba->H0,2)/pow(a,4);
+    printf("UR density right now is %g\n", rho_ur_tot);
+    // Here we cannot use pvecback to access all non stepped fluid UR densty since it has not
+    // been popularized at the initial conditions stage.
+    // Luckily, the rho_rad variable defined so far is exactly this, so we will subtract out
+    // the photon contribution and use it.
+    class_call(background_stepped_fld(pba,
+                                      a,
+                                      rho_ur_tot,
+                                      &rho_stepped_fld,
+                                      NULL,
+                                      NULL), 
+               pba->error_message, 
+               pba->error_message);  
+    rho_rad += rho_stepped_fld;
   }
+  */
+  
+  /* End stepped fluid modification */
+
   if (pba->has_dcdm == _TRUE_) {
     /* Remember that the critical density today in CLASS conventions is H0^2 */
     pvecback_integration[pba->index_bi_rho_dcdm] =
