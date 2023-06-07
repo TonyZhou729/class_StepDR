@@ -583,12 +583,17 @@ int background_functions(
 
   /* Stepped fluid modification */
 
-  /* steppd fluid with variable equation of state and sound speed */
+  /* stepped fluid with variable equation of state and sound speed */
   if (pba->has_stepped_fld == _TRUE_) {
+    
+    // To calculate rho_stepped_fld  we need to know the energy density of 1 neutrino specie, 
+    // which can be calculated as follows using the definition of N_eff.
+    double rho_1nu = 7./8.*pow(4./11.,4./3.)*pvecback[pba->index_bg_rho_g];
+    
     // Call background function to compute relevant values, store in pvecback
     class_call(background_stepped_fld(pba, 
                                       a,
-                                      pvecback[pba->index_bg_rho_ur],
+                                      rho_1nu,
                                       &rho_stepped_fld,                                 
                                       &w_stepped_fld,                                       
                                       &cs2_stepped_fld),
@@ -602,13 +607,8 @@ int background_functions(
     rho_tot += rho_stepped_fld;
     rho_r += rho_stepped_fld;
     p_tot += w_stepped_fld * rho_stepped_fld;
-
-    // Dummy place holder, don't really know what to do with dp_dloga yet...
-    dp_dloga += 0.;
   }  
   /* End stepped fluid modification */
-
-
 
   /** - compute expansion rate H from Friedmann equation: this is the
       only place where the Friedmann equation is assumed. Remember
@@ -793,9 +793,9 @@ int background_w_fld(
  * Call function to obtain relevant parameters associated with the stepped dark radiation.
  * Parameters of the function are passed through the background structure. 
  *
- * @param pba            Input: pointer to background structure
- * @param a              Input: current value of scale factor
- * @param rho_ur         Input: current neutrino density parameter
+ * @param pba            Input: Pointer to background structure
+ * @param a              Input: Current value of scale factor
+ * @param rho_1nu        Input: Energy density of 1 neutrino specie
  * @param rho            Output: Fluid density parameter 
  * @param w              Output: Fluid equation of state parameter 
  * @param cs2            Output: Squared sound speed of fluid 
@@ -805,25 +805,30 @@ int background_w_fld(
 int background_stepped_fld(
                            struct background* pba,
                            double a,            
-                           double rho_ur,
+                           double rho_1nu,
                            double *rho,                           
                            double *w,                           
                            double *cs2){
 
-  double x, k1, k2, rh, ph, N;
-  double w_local, cs2_local, rho_local;
+  double x, rh, ph, N; // Assisting variables
+  double w_local, cs2_local, rho_local; // Define local variables
+  
+  // Call numerical solver to obtain scalar mass to WZDR temperature ratio.
   x = solve_x_of_a(a, 1/(1+pba->zt_stepped_fld), pba->rg_stepped_fld);  
   
+  // Maxwell Boltzmann integrals of density and pressure.
   rh = rhohat(x);
   ph = phat(x);  
 
+  // WZDR equation of state and squared sound speed formulae.
   w_local = 1./3. - (pba->rg_stepped_fld/3.)*(rh-ph)/(1+pba->rg_stepped_fld*rh);
   cs2_local = 1./3. - (pba->rg_stepped_fld/36.)*(pow(x,2.)*ph)/(1+pba->rg_stepped_fld*(3./4.*rh+(1./4.+pow(x,2.)/12.)*ph));
   
-  // Fluid density via neutrino density and definition of delta N_eff.
+  // Fluid density via neutrino density and definition of delta N_eff from WZDR.
   N = pba->N_ir_stepped_fld*(1+pba->rg_stepped_fld*rh)/pow(1+pba->rg_stepped_fld*(3./4.*rh+1./4.*ph), 4./3.);    
-  rho_local = rho_ur/3.044 * N; // Weight by just 1 neutrino flavor! Not all 3!
+  rho_local = rho_1nu * N;
 
+  // Assign results to pointers.
   *rho = rho_local;
   *w = w_local;
   *cs2 = cs2_local;
