@@ -114,6 +114,8 @@ struct background
   double N_uv_stepped_fld; /**< \f$ N_{\rm UV, step} \f$: Early time (UV) effective UR d.o.f of stepped fluid */
   double zt_stepped_fld; /**< \f$ z_{\rm step} \f$: Fluid stepping redshift */
   double rg_stepped_fld; /**< \f$ r_g \f$: Fluid step size parameter, set by model */
+  double Omega0_stepped_fld; /**< \f$ \Omega_{0 stepped_fld} \f$ 
+                              * NO CALCULATIONS DONE WITH THIS, FOR BUDGET OUTPUT ONLY */
 
   /* End stepped fluid modification */
   

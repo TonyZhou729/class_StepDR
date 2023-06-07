@@ -589,7 +589,7 @@ int background_functions(
     // To calculate rho_stepped_fld  we need to know the energy density of 1 neutrino specie, 
     // which can be calculated as follows using the definition of N_eff.
     double rho_1nu = 7./8.*pow(4./11.,4./3.)*pvecback[pba->index_bg_rho_g];
-    
+
     // Call background function to compute relevant values, store in pvecback
     class_call(background_stepped_fld(pba, 
                                       a,
@@ -829,9 +829,9 @@ int background_stepped_fld(
   rho_local = rho_1nu * N;
 
   // Assign results to pointers.
-  *rho = rho_local;
-  *w = w_local;
-  *cs2 = cs2_local;
+  if (rho != NULL) *rho = rho_local;
+  if (w != NULL) *w = w_local;
+  if (cs2 != NULL) *cs2 = cs2_local;
     
   return _SUCCESS_;
 }
@@ -1848,13 +1848,7 @@ int background_checks(
   double rho_ncdm_rel,rho_nu_rel;
   double N_dark;
   double w_fld, dw_over_da, integral_fld;
-  int filenum=0;
-  
-  /* Stepped fluid modification */
-
-  double N_stepped_fld;
-
-  /* End stepped fluid modification */
+  int filenum=0;  
 
   /** - control that we have photons and baryons in the problem */
   class_test((pba->Omega0_g<=0) || (pba->Omega0_b<=0),
@@ -1970,7 +1964,14 @@ int background_checks(
 
     /* Stepped fluid modification */
     
-    /* contribution of stepped fluid to N_eff */
+    /** 
+     * contribution of stepped fluid to N_eff. Since this is computed at initial time,
+     * We can assume it is well before the stepped fluid transition, and use N_ur_stepped_fld
+     * as the Delta Neff. 
+     * */
+    if (pba->has_stepped_fld == _TRUE_) {
+      printf(" -> stepped fluid Delta Neff (N_UV) %e\n",pba->N_uv_stepped_fld);
+    }
     
     /* End stepped fluid modification */
 
@@ -2270,8 +2271,7 @@ int background_initial_conditions(
   double w_fld,dw_over_da_fld,integral_fld;
   
   /* Stepped fluid modification */
-
-  // Call background_stepped_fld() to get density and add to relativistic contributions.
+  
   double rho_stepped_fld;
   
   /* End stepped fluid modification */
@@ -2338,26 +2338,23 @@ int background_initial_conditions(
   }  
 
   /* Stepped fluid modification */
-
-  /* 
-  if (pba->has_stepped_fld == _TRUE_) {
-    double rho_ur_tot = rho_rad; //- pba->Omega0_g*pow(pba->H0,2)/pow(a,4);
-    printf("UR density right now is %g\n", rho_ur_tot);
-    // Here we cannot use pvecback to access all non stepped fluid UR densty since it has not
-    // been popularized at the initial conditions stage.
-    // Luckily, the rho_rad variable defined so far is exactly this, so we will subtract out
-    // the photon contribution and use it.
+  
+  if (pba->has_stepped_fld == _TRUE_) {    
+    // To calculate rho_stepped_fld  we need to know the energy density of 1 neutrino specie, 
+    // which can be calculated as follows using the definition of N_eff.
+    double rho_1nu = 7./8.*pow(4./11.,4./3.)*pba->Omega0_g*pow(pba->H0,2)/pow(a,4);
+    
+    // Call background function to obtain rho_stepped_fld.    
     class_call(background_stepped_fld(pba,
                                       a,
-                                      rho_ur_tot,
+                                      rho_1nu,
                                       &rho_stepped_fld,
                                       NULL,
                                       NULL), 
                pba->error_message, 
                pba->error_message);  
-    rho_rad += rho_stepped_fld;
+    rho_rad += rho_stepped_fld; // Add stepped fluid density to radiation density.
   }
-  */
   
   /* End stepped fluid modification */
 
@@ -3004,6 +3001,14 @@ int background_output_budget(
       class_print_species("Interacting Dark Radiation",idr);
       budget_radiation+=pba->Omega0_idr;
     }
+    /* Stepped fluid modification */
+    
+    if (pba->has_stepped_fld == _TRUE_){
+      class_print_species("Stepped fluid",stepped_fld);
+      budget_radiation+=pba->Omega0_stepped_fld; 
+    }
+    
+    /* End stepped fluid modification */
 
     if ((pba->has_lambda == _TRUE_) || (pba->has_fld == _TRUE_) || (pba->has_scf == _TRUE_) || (pba->has_curvature == _TRUE_)) {
       printf(" ---> Other Content \n");

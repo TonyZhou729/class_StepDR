@@ -2681,8 +2681,12 @@ int input_read_parameters_species(struct file_content * pfc,
   class_read_double("N_ir_stepped_fld", pba->N_ir_stepped_fld);
   class_read_double("zt_stepped_fld", pba->zt_stepped_fld);
   class_read_double("rg_stepped_fld", pba->rg_stepped_fld);  
-  pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1+pba->rg_stepped_fld, 1./3.);
-
+  pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1+pba->rg_stepped_fld, 1./3.);  
+  pba->Omega0_stepped_fld = pba->N_ir_stepped_fld * pba->Omega0_g; /** Assume late time value, well
+  * after the fluid transition. For this reason the quantity is only useful for late time output
+  * and not for any calculations. If density of the stepped fluid is needed at some scale factor,
+  * use background vector or call background_stepped_fld(). */
+  
   /* End stepped fluid modification */
 
   /** 7.1) Decaying DM into DR */
@@ -3178,6 +3182,10 @@ int input_read_parameters_species(struct file_content * pfc,
   Omega_tot += pba->Omega0_dcdmdr;
   Omega_tot += pba->Omega0_idr;
   Omega_tot += pba->Omega0_ncdm_tot;
+  /* Stepped fluid modification */
+  Omega_tot += pba->Omega0_stepped_fld; // For now only adjust Omega_Lambda using late time value.
+  /* End stepped fluid modification */
+  
   /* Step 1 */
   if (flag1 == _TRUE_){
     pba->Omega0_lambda = param1;
@@ -5781,6 +5789,7 @@ int input_default_params(struct background *pba,
   pba->N_uv_stepped_fld = 0.;
   pba->zt_stepped_fld = 0;
   pba->rg_stepped_fld = 0;
+  pba->Omega0_stepped_fld = 0;
 
   /* End stepped fluid modification */
 
