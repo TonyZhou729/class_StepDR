@@ -1965,12 +1965,13 @@ int background_checks(
     /* Stepped fluid modification */
     
     /** 
-     * contribution of stepped fluid to N_eff. Since this is computed at initial time,
-     * We can assume it is well before the stepped fluid transition, and use N_ur_stepped_fld
-     * as the Delta Neff. 
-     * */
+     * Contribution of stepped fluid to N_eff. Since the changing of the fluid rel d.o.f. is an
+     * intrinsic feature, will output the N_eff contribution 1) Well before the transition (using
+     * N_uv) as well as 2) Well after the transition (using N_ir).
+     */
     if (pba->has_stepped_fld == _TRUE_) {
       printf(" -> stepped fluid Delta Neff (N_UV) %e\n",pba->N_uv_stepped_fld);
+      printf(" -> stepped fluid Delta Neff (N_IR) %e\n",pba->N_ir_stepped_fld);
     }
     
     /* End stepped fluid modification */
