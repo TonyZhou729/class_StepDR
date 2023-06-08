@@ -1,9 +1,5 @@
 #include "common.h"
 
-/* Stepped fluid modification */
-#include "gsl/gsl_sf_bessel.h" // For usage of the modified bessel function of the second kind from gsl math library.
-/* End stepped fluid modification */
-
 void class_protect_sprintf(char* dest, char* tpl,...) {
   va_list args;
   va_start(args,tpl);
@@ -122,15 +118,71 @@ int class_version(
 /* Stepped fluid modification */
 
 /**
+ * Analytical expressions for approximating modified Bessel function of the second kind at
+ * integer order 0. This is needed later for obtaining the same function of order 1 via recurrence
+ * relations. This expression was derived by Martin (2017).
+ *
+ * @param x  Input: Input
+ * @return approximation result.
+ */
+double K0(double x){
+  double cosh = 0.5 * (pow(_E_, x) + pow(_E_, -x)); // Hyperbolic cosine expressed as exponentials.
+  double term1 = 1.0 / ((1.0+0.72763*pow(x,2.)) * pow(1.0+0.08250*pow(x,2.),5./4.) * cosh);
+  double term2 = 0.11593 - 0.05064*pow(x,2.) - 0.00470*pow(x,2.)*sqrt(1+0.28723*pow(x,2.)) - 0.5 * log(pow(x,2.)/(1.+pow(x,2.))) * (1.+1.57580*pow(x,2.)+0.78684*pow(x,4.)+0.04032*pow(x,6.));
+  return term1*term2;
+}
+
+/**
+ * Analytical expressions for approximating modified Bessel function of the second kind at
+ * integer order 2. This is needed later for obtaining the same function of order 1 via recurrence
+ * relations, as well as computing the Maxwell-Boltzmann integral results. This expression was 
+ * derived by Caruso & Silveira (2020).
+ *
+ * Note that their work also included analytical approximations for K0 and K1. However, the 
+ * fractional errors on those expressions are larger than the tolerance of our work.
+ *
+ * @param x  Input: Input
+ * @return approximation result.
+ */
+double K2(double x){
+  return pow(_E_, -x) * (784./1615. +
+                         2./pow(x,2.) +
+                         3232./(1615.*x) -
+                         448.*x/4845. +
+                         5416744.*pow(x,2.)/190855665. -
+                         93376.*pow(x,3.)/14549535. +
+                         27424*pow(x,4.)/31177575. -
+                         512.*pow(x,5.)/8083075. +
+                         4.*pow(x,6.)/2204475.);
+}
+
+/**
+ * Analytical expressions for the  modified Bessel function of the second kind at integer order 1. 
+ * This is needed to compute the Maxwell-Boltzmann integral results. Besides using approximated 
+ * results for K0 and K2 as inputs, the recurrence relation used here to obtain K1 is exact and 
+ * follows from the properties of modified Bessel functions
+ *
+ * $K_{n+1}(x) = K_{n-1}(x) + \frac{2n}{x}K_n(x)$\, ,
+ *
+ * where we use n=1 and rearranged to obtain an expression for K1 in terms of K2 and K0.
+ *
+ * @param x  Input: Input
+ * @return result.
+ */
+double K1(double x){
+  return x/2. * (K2(x)-K0(x));
+}
+
+/**
  * Dimensionless Maxwell-Boltzmann density integral.
  *
  * @param x  Input: Dimensionless inverse fluid temperature x=m/Td.
  * @return analytic result in polynomial and modified bessel function (2nd kind) terms.
  */
 double rhohat(double x){
-  double K1 = gsl_sf_bessel_Kn(1, x);
-  double K2 = gsl_sf_bessel_Kn(2, x);
-  return pow(x, 2.)/2*K2 + pow(x, 3.)/6*K1;
+  //double K1 = gsl_sf_bessel_Kn(1, x); // OBSOLETE: Unusable by python wrapper
+  //double K2 = gsl_sf_bessel_Kn(2, x); // OBSOLETE: Unusable by python wrapper  
+  return pow(x, 2.)/2*K2(x) + pow(x, 3.)/6*K1(x);
 }
 
 /**
@@ -140,8 +192,8 @@ double rhohat(double x){
  * @return analytic result in polynomial and modified bessel function (2nd kind) terms.
  */
 double phat(double x){  
-  double K2 = gsl_sf_bessel_Kn(2, x);
-  return pow(x, 2.)/2*K2;
+  //double K2 = gsl_sf_bessel_Kn(2, x); // OBSOLETE: Unusable by python wrapper  
+  return pow(x, 2.)/2*K2(x);
 }
 
 /** 

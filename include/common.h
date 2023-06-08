@@ -104,6 +104,9 @@ int string_begins_with(char* thestring, char beginchar);
 
 /* Stepped fluid modification */
 
+double K0(double x);
+double K2(double x);
+double K1(double x);
 double rhohat(double x);
 double phat(double x);
 double _secant_method(double x0, double x1, double a, double at, double rg);
