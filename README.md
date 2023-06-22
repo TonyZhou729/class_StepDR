@@ -13,17 +13,17 @@ All modifications to CLASS source files are enclosed in comments that read "Step
 
 Running the code
 --------------
-Installation, compiling and setting up the Python wrapper all work identically to base CLASS. See the official page
+Installation, compiling and setting up the Python wrapper all work identically to base CLASS. See the official CLASS repository
 
 https://github.com/lesgourg/class_public
 
 for detailed guide on installation. If you run into trouble installing/running the code but can otherwise run base CLASS, please open an issue.
 
-A sample input containing the stepped fluid can be found in inputs/WZDR.ini, and contains some information on how to pass in stepped fluid parameters.
+A sample input with the WZDR can be found in inputs/WZDR.ini, and contains some information on how to pass in stepped fluid parameters. The code can be used in Python with successful setup of the Python wrapper. Parameter names input in Python should match those in the WZDR.ini file. The Python code is compatible with MontePython.
 
 Using the code
 --------------
-
-You can use CLASS freely, provided that in your publications, you cite
-at least the paper `CLASS II: Approximation schemes <http://arxiv.org/abs/1104.2933>`. Feel free to cite more CLASS papers!
-
+Like base CLASS this code is open source. Feel free to create a new branch and modify as you please. If you use this code and the WZDR for your work, please include:
+1. Base CLASS citation `CLASS II: Approximation schemes <http://arxiv.org/abs/1104.2933>` 
+2. WZDR citation `A Step in Understanding the Hubble Tension <http://arxiv.org/abs/2111.00014>`
+3. A link to this GitHub repository. 
