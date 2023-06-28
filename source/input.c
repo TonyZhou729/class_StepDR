@@ -2675,13 +2675,105 @@ int input_read_parameters_species(struct file_content * pfc,
   
   /* Stepped fluid modification */
  
-  /* For now assume that N_IR, rg are inputs, and use them to deduce N_UV.
-   * May generalize to accepting any 2 of the 3 later. */
+  /* Read in stepped fluid effective number N_IR or N_UV */
+  class_call(parser_read_double(pfc,"N_ir_stepped_fld",&param1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+  class_call(parser_read_double(pfc,"N_uv_stepped_fld",&param2,&flag2,errmsg),
+             errmsg,
+             errmsg);
+  class_test(((flag1 == _TRUE_) && (flag2 == _TRUE_)),
+             errmsg,
+             "You can only enter one of 'N_IR' or 'N_UV'. The other is deduced via r_g and the number of steps of the stepped fluid.");
+  /* Assign effective number */  
+  if (flag1 == _TRUE_)
+      pba->N_ir_stepped_fld = param1;
+  if (flag2 == _TRUE_)
+      pba->N_uv_stepped_fld = param2;
+  /* Check that user passed in positive value for N_uv or N_ir */
+  class_test((pba->N_uv_stepped_fld < 0 || pba->N_ir_stepped_fld < 0),
+             errmsg,
+             "You cannot pass in a negative value for the stepped fluid effective number.");
+  
+  /* Read in first/only transition redshift of the stepped fluid, can be either
+   * the full value or the log10 value. */
+  class_call(parser_read_double(pfc,"zt_stepped_fld",&param1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+  class_call(parser_read_double(pfc,"log10_zt_stepped_fld",&param2,&flag2,errmsg),
+             errmsg,
+             errmsg);
+  class_test(((flag1 == _TRUE_) && (flag2 == _TRUE_)),
+             errmsg,
+             "You can only enter one of 'zt_stepped_fld' or 'log10_zt_stepped_fld'.");
+  /* Assign transition redshift */
+  if (flag1 == _TRUE_)
+      pba->zt_stepped_fld = param1;
+  if (flag2 == _TRUE_)
+      pba->zt_stepped_fld = pow(10., param2);
+  /* Non-negative check */
+  class_test((pba->zt_stepped_fld < 0),
+             errmsg,
+             "You cannot pass in a negative value for the stepped fluid transition redshift.");
 
-  class_read_double("N_ir_stepped_fld", pba->N_ir_stepped_fld);
-  class_read_double("zt_stepped_fld", pba->zt_stepped_fld);
+  /* Read in optionally non-standard r_g, default is 8/7*/
   class_read_double("rg_stepped_fld", pba->rg_stepped_fld);  
-  pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1+pba->rg_stepped_fld, 1./3.);  
+
+  /* Read in optionally second transition redshift for a two-stepped fluid */
+  class_call(parser_read_double(pfc,"zt2_stepped_fld",&param1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+  class_call(parser_read_double(pfc,"log10_zt2_stepped_fld",&param2,&flag2,errmsg),
+             errmsg,
+             errmsg);
+  class_test(((flag1 == _TRUE_) && (flag2 == _TRUE_)),
+             errmsg,
+             "You can only enter one of 'zt2_stepped_fld' or 'log10_zt2_stepped_fld'.");
+  /* Assign transition redshift */
+  if (flag1 == _TRUE_)
+      pba->zt2_stepped_fld = param1;
+  if (flag2 == _TRUE_)
+      pba->zt2_stepped_fld = pow(10., param2);
+  /* Non-negative check */
+  class_test((pba->zt2_stepped_fld < 0),
+             errmsg,
+             "You cannot pass in a negative value for the second stepped fluid transition redshift.");
+
+  /* Check that first zt is set when the second zt2 is set */
+  class_test(((pba->zt_stepped_fld == 0) && (pba->zt2_stepped_fld != 0)), 
+             errmsg,
+             "You must pass in a first transition redshift 'zt_stepped_fld' before passing in a second one 'zt2_stepped_fld'.");  
+
+  /* Check that user specified one of N_uv or N_ir if a zt has been passed */
+  class_test(((pba->N_ir_stepped_fld == 0 && pba->N_uv_stepped_fld == 0) && pba->zt_stepped_fld != 0),
+             errmsg,
+             "You passed in a transition redshift without specifying either N_IR or N_UV. Pass in a value for one of them and retry.");
+
+  /* Now deduce N_IR or N_UV from the one that the user passed in */
+  if (pba->N_ir_stepped_fld > 0){
+    /* First case where the stepped fluid has 2 steps */
+    if (pba->zt2_stepped_fld != 0) {
+      pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1.+2.*pba->rg_stepped_fld, 1./3.);
+    } else {
+    /* Second case where the stepped fluid has 1 step */
+      pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1.+pba->rg_stepped_fld, 1./3.); 
+    }
+  }
+
+  if (pba->N_uv_stepped_fld > 0 && pba->N_ir_stepped_fld == 0){
+    /* First case where the stepped fluid has 2 steps */
+    if (pba->zt2_stepped_fld != 0) {
+      pba->N_ir_stepped_fld = pba->N_uv_stepped_fld * pow(1.+2.*pba->rg_stepped_fld, 1./3.);
+    } else {
+    /* Second case where the stepped fluid has 1 step */
+      pba->N_ir_stepped_fld = pba->N_uv_stepped_fld * pow(1.+pba->rg_stepped_fld, 1./3.); 
+    } 
+  }
+
+  //class_read_double("N_ir_stepped_fld", pba->N_ir_stepped_fld);
+  //class_read_double("zt_stepped_fld", pba->zt_stepped_fld);
+  //class_read_double("rg_stepped_fld", pba->rg_stepped_fld);  
+  //pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1+pba->rg_stepped_fld, 1./3.);  
   pba->Omega0_stepped_fld = pba->N_ir_stepped_fld * pba->Omega0_g; /** Assume late time value, well
   * after the fluid transition. For this reason the quantity is only useful for late time output
   * and not for any calculations. If density of the stepped fluid is needed at some scale factor,
@@ -5787,9 +5879,10 @@ int input_default_params(struct background *pba,
   
   pba->N_ir_stepped_fld = 0.;
   pba->N_uv_stepped_fld = 0.;
-  pba->zt_stepped_fld = 0;
-  pba->rg_stepped_fld = 0;
-  pba->Omega0_stepped_fld = 0;
+  pba->zt_stepped_fld = 0.;
+  pba->zt2_stepped_fld = 0.;
+  pba->rg_stepped_fld = 8./7.;
+  pba->Omega0_stepped_fld = 0.;
 
   /* End stepped fluid modification */
 
