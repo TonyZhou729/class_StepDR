@@ -109,9 +109,10 @@ double K2(double x);
 double K1(double x);
 double rhohat(double x);
 double phat(double x);
-double _secant_method(double x0, double x1, double a, double at, double rg);
-double _f_(double x, double a, double at, double rg);
-double solve_x_of_a(double a, double at, double rg);
+double secantMethod(double point1, double point2, double* params, double (*entrop)(double, double*));
+double entrop_one_step(double x, double* params);
+double entrop_two_step(double x1, double* params);
+double solve_x_of_a(double* params, int paramSize);
 
 /* End stepped fluid modification */
 

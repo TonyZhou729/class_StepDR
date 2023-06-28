@@ -196,29 +196,29 @@ double phat(double x){
   return pow(x, 2.)/2*K2(x);
 }
 
+
 /** 
  * A very makeshift secant method non-linear function root finder. May be improved in the future.
  *
- * @param x0  Input: Solution guess 1.
- * @param x1  Input: Solution guess 2.
- * @param a   Input: Current scale factor.
- * @param at  Input: Fluid step scale factor.
- * @param rg  Input: Dimensionless step size.
- * @return root x of the function. 
- */
-double _secant_method(double x0, double x1, double a, double at, double rg){
-  double x2, f0, f1, f2;
+ * @param point1   Input: Solution guess 1.
+ * @param point2   Input: Solution guess 2.
+ * @param params   Input: Array of doubles required by target entropy function. 
+ * @param *entrop  Input: Entropy function to find root of.
+ * @return roots x of the target entropy function. 
+ */ 
+double secantMethod(double point1, double point2, double* params, double (*entrop)(double, double*)){
+  double res, f0, f1, f2;
   int iteration = 0;
     
   do {
-    f0 = _f_(x0, a, at, rg);
-    f1 = _f_(x1, a, at, rg);
+    f0 = entrop(point1, params);
+    f1 = entrop(point2, params);
 
-    x2 = x1 - ((f1 * (x1 - x0)) / (f1 - f0));
-    f2 = _f_(x2, a, at, rg);
+    res = point2 - ((f1 * (point2 - point1)) / (f1 - f0));
+    f2 = entrop(res, params);
 
-    x0 = x1;
-    x1 = x2;
+    point1 = point2;
+    point2 = res;
 
     iteration++;
     
@@ -229,38 +229,81 @@ double _secant_method(double x0, double x1, double a, double at, double rg){
 
   } while (fabs(f2) > _SECANT_TOL_);
   
-  return x2;
+  return res;
 }
 
 /**
- * Non-linear function derived from entropy conservation, root of which is the solution to x(a).
- *
+ * Non-linear function derived from entropy conservation for a fluid with one step (WZDR).
+ * Root is the solution to x(a).
+ * 
  * @param x   Input: Dimensionless inverse fluid temperature x=m/Td.
- * @param a   Input: Scale factor of interest.
- * @param at  Input: Fluid step scale factor.
- * @param rg  Input: Dimensionless step size.
+ * @param params   Input: Array of doubles containing necessary quantities as follows: 
+ *     @param a   Input: Current scale factor.
+ *     @param at  Input: Fluid transition scale factor.
+ *     @param rg  Input: Dimensionless step size.
  * @return Evaluated result at a particular test x.
  */
-double _f_(double x, double a, double at, double rg){
+double entrop_one_step(double x, double* params){
   double LHS, RHS;
+  double a = params[0];
+  double at = params[1];
+  double rg = params[2];
+
   LHS = pow(x*at/a,3.);
   RHS = 1. + rg/4*(3*rhohat(x) + phat(x));
   return LHS - RHS;
 }
 
 /**
+ * Non-linear function derived from entropy conservation for a fluid with two steps.
+ * Root is the solution to x1(a).
+ * 
+ * @param x1   Input: Dimensionless inverse fluid temperature x1=m1/Td.
+ * @param params   Input: Array of doubles containing necessary quantities as follows: 
+ *     @param a    Input: Current scale factor.
+ *     @param at1  Input: First fluid transition scale factor.
+ *     @param at2  Input: Second fluid transition scale factor.
+ *     @param rg   Input: Dimensionless step size.
+ * @return Evaluated result at a particular test x1.
+ */
+double entrop_two_step(double x1, double* params){
+  double LHS, RHS;
+  double a = params[0];
+  double at1 = params[1];
+  double at2 = params[2];
+  double rg = params[3];
+  double x2 = x1*at1/at2;
+
+  LHS = pow(x1*at1/a,3.);
+  RHS = 1. + rg/4*(3*(rhohat(x1)+rhohat(x2)) + (phat(x1)+phat(x2)));
+  return LHS - RHS;
+}
+
+/**
  * Numerically solves x as a function of the scale factor via a secant method root finder.
  *
- * @param x   Input: Dimensionless inverse fluid temperature x=m/Td.
- * @param a   Input: Scale factor of interest.
- * @param at  Input: Fluid step scale factor.
- * @param rg  Input: Dimensionless step size.
+ * @param params   Input: Array of doubles containing necessary quantities as follows: 
+ *     @param a    Input: Current scale factor.
+ *     @param at1  Input: First fluid transition scale factor.
+ *     @(optional)param at2  Input: Second fluid transition scale factor.
+ *     @param rg   Input: Dimensionless step size. 
  * @return root x of the non-linear function. 
  */
-double solve_x_of_a(double a, double at, double rg){
+double solve_x_of_a(double* params, int paramSize){
+  double a = params[0];
+  double at = params[1];
+  
+  // Initial guesses for x (or x1)
   double guess1 = a/at * 1.1;
   double guess2 = a/at * 0.9;
-  return _secant_method(guess1, guess2, a, at, rg);
+  
+  // Case for single step fluid.
+  if (paramSize == 3){    
+    return secantMethod(guess1, guess2, params, entrop_one_step);    
+  } else {
+    // Case for solving x1 for two stepped fluid.
+    return secantMethod(guess1, guess2, params, entrop_two_step); 
+  }  
 }
 
 /* End stepped fluid modification */

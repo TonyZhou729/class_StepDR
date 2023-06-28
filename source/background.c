@@ -811,21 +811,45 @@ int background_stepped_fld(
                            double *cs2){
 
   double x, rh, ph, N; // Assisting variables
-  double w_local, cs2_local, rho_local; // Define local variables
-  
-  // Call numerical solver to obtain scalar mass to WZDR temperature ratio.
-  x = solve_x_of_a(a, 1/(1+pba->zt_stepped_fld), pba->rg_stepped_fld);  
+  double x2, at2, rh2, ph2; // In case fluid has a second transition.
+  double w_local, cs2_local, rho_local; // Define local variables  
+  double rg = pba->rg_stepped_fld;
+
+  double at1 = 1./(1.+pba->zt_stepped_fld);
+  // Case for two-stepped fluid
+  if (pba->zt2_stepped_fld > 0 ){
+    at2 = 1./(1.+pba->zt2_stepped_fld);
+    double params[] = {a, at1, at2, rg};
+    // Call numerical solver to obtain the scalar mass to temperature ratio.
+    x = solve_x_of_a(params, 4);  
+  } else {
+    double params[] = {a, at1, rg};
+    x = solve_x_of_a(params, 3);  
+  }  
   
   // Maxwell Boltzmann integrals of density and pressure.
   rh = rhohat(x);
   ph = phat(x);  
 
-  // WZDR equation of state and squared sound speed formulae.
-  w_local = 1./3. - (pba->rg_stepped_fld/3.)*(rh-ph)/(1+pba->rg_stepped_fld*rh);
-  cs2_local = 1./3. - (pba->rg_stepped_fld/36.)*(pow(x,2.)*ph)/(1+pba->rg_stepped_fld*(3./4.*rh+(1./4.+pow(x,2.)/12.)*ph));
+  // First compute fluid equations if there are two steps.
+  if (pba->zt2_stepped_fld > 0){
+    x2 = x*at1/at2;
+    rh2 = rhohat(x2);
+    ph2 = phat(x2);
   
-  // Fluid density via neutrino density and definition of delta N_eff from WZDR.
-  N = pba->N_ir_stepped_fld*(1+pba->rg_stepped_fld*rh)/pow(1+pba->rg_stepped_fld*(3./4.*rh+1./4.*ph), 4./3.);    
+    // Equation of state and squared sound speed.
+    w_local = 1./3. - (rg/3.)*(rh+rh2-ph-ph2)/(1+rg*(rh+rh2));
+    cs2_local = 1./3. - (rg/3.)*(x*x*ph+x2*x2*ph2) /
+                (12 + rg*(3+x*x)*ph + rg*(3+x2*x2)*ph2 + 9*rg*(rh+rh2));
+  
+    // Fluid density via neutrino density.
+    N = pba->N_ir_stepped_fld*(1+rg*(rh+rh2))/pow(1+(rg/4.)*(ph+ph2+3*(rh+rh2)), 4./3.);        
+  } else {
+    // Just the WZDR equation of state, squared sound speed and N(x).
+    w_local = 1./3. - (rg/3.)*(rh-ph)/(1+rg*rh);
+    cs2_local = 1./3. - (rg/36.)*(pow(x,2.)*ph)/(1+rg*(3./4.*rh+(1./4.+pow(x,2.)/12.)*ph));
+    N = pba->N_ir_stepped_fld*(1+rg*rh)/pow(1+rg*(3./4.*rh+1./4.*ph), 4./3.);    
+  } 
   rho_local = rho_1nu * N;
 
   // Assign results to pointers.
