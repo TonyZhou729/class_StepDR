@@ -1,7 +1,7 @@
 CLASS_StepDR: CLASS with "Stepped Dark Radiation" {#mainpage}
 ==============================================
 
-Author: Zilu Zhou
+Author: Zilu (Tony) Zhou
 
 Description
 --------------
@@ -19,7 +19,11 @@ https://github.com/lesgourg/class_public
 
 for detailed guide on installation. If you run into trouble installing/running the code but can otherwise run base CLASS, please open an issue.
 
-A sample input with the WZDR can be found in inputs/WZDR.ini, and contains some information on how to pass in stepped fluid parameters. The code can be used in Python with successful setup of the Python wrapper. Parameter names input in Python should match those in the WZDR.ini file. The Python code is compatible with MontePython.
+A sample input with the WZDR can be found in inputs/WZDR.ini, and contains some information on how to pass in stepped fluid parameters. After compiling the C code using `make`, run
+
+    ./class input/WZDR.ini
+
+to do a sample run with the WZDR. The code can be used in Python with successful setup of the Python wrapper. Parameter names input in Python should match those in the WZDR.ini file. The Python code is compatible with MontePython.
 
 Using the code
 --------------
