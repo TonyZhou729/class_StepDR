@@ -1,7 +1,7 @@
 CLASS_StepDR: CLASS with "Stepped Dark Radiation" {#mainpage}
 ==============================================
 
-Author: Zilu (Tony) Zhou
+Modifier: Zilu (Tony) Zhou
 
 Description
 --------------
