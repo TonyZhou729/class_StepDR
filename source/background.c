@@ -841,7 +841,7 @@ int background_stepped_fld(
     // Equation of state and squared sound speed.
     w_local = 1./3. - (1./3.)*(rg*(rh-ph)+rg2*(rh2-ph2))/(1+rg*rh+rg2*rh2);
     cs2_local = 1./3. - (1./3.)*(rg*x*x*ph+rg2*x2*x2*ph2) /
-                (12 + rg*(3+x*x)*ph + rg2*(3+x2*x2)*ph2 + 9*rg*rh+rg2*rh2);
+                (12 + rg*(3+x*x)*ph + rg2*(3+x2*x2)*ph2 + 9*(rg*rh+rg2*rh2));
   
     // Fluid density via neutrino density.
     N = pba->N_ir_stepped_fld*(1+rg*rh+rg2*rh2)/pow(1+(1./4.)*(rg*(3*rh+ph)+rg2*(3*rh2+ph2)), 4./3.);        
