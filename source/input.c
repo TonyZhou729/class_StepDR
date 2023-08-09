@@ -2716,7 +2716,7 @@ int input_read_parameters_species(struct file_content * pfc,
              errmsg,
              "You cannot pass in a negative value for the stepped fluid transition redshift.");
 
-  /* Read in optionally non-standard r_g, default is 8/7*/
+  /* Read in optionally non-standard r_g, default is 8/7 */
   class_read_double("rg_stepped_fld", pba->rg_stepped_fld);  
 
   /* Read in optionally second transition redshift for a two-stepped fluid */
@@ -2739,6 +2739,9 @@ int input_read_parameters_species(struct file_content * pfc,
              errmsg,
              "You cannot pass in a negative value for the second stepped fluid transition redshift.");
 
+  /* Read in optionally second non-standard r_g, default is 8/7 */
+  class_read_double("rg2_stepped_fld", pba->rg2_stepped_fld);
+
   /* Check that first zt is set when the second zt2 is set */
   class_test(((pba->zt_stepped_fld == 0) && (pba->zt2_stepped_fld != 0)), 
              errmsg,
@@ -2753,7 +2756,7 @@ int input_read_parameters_species(struct file_content * pfc,
   if (pba->N_ir_stepped_fld > 0){
     /* First case where the stepped fluid has 2 steps */
     if (pba->zt2_stepped_fld != 0) {
-      pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1.+2.*pba->rg_stepped_fld, 1./3.);
+      pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1.+ pba->rg_stepped_fld + pba->rg2_stepped_fld, 1./3.);
     } else {
     /* Second case where the stepped fluid has 1 step */
       pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1.+pba->rg_stepped_fld, 1./3.); 
@@ -2763,7 +2766,7 @@ int input_read_parameters_species(struct file_content * pfc,
   if (pba->N_uv_stepped_fld > 0 && pba->N_ir_stepped_fld == 0){
     /* First case where the stepped fluid has 2 steps */
     if (pba->zt2_stepped_fld != 0) {
-      pba->N_ir_stepped_fld = pba->N_uv_stepped_fld * pow(1.+2.*pba->rg_stepped_fld, 1./3.);
+      pba->N_ir_stepped_fld = pba->N_uv_stepped_fld * pow(1.+ pba->rg_stepped_fld + pba->rg2_stepped_fld, 1./3.);
     } else {
     /* Second case where the stepped fluid has 1 step */
       pba->N_ir_stepped_fld = pba->N_uv_stepped_fld * pow(1.+pba->rg_stepped_fld, 1./3.); 
@@ -5882,6 +5885,7 @@ int input_default_params(struct background *pba,
   pba->zt_stepped_fld = 0.;
   pba->zt2_stepped_fld = 0.;
   pba->rg_stepped_fld = 8./7.;
+  pba->rg2_stepped_fld = 8./7.;
   pba->Omega0_stepped_fld = 0.;
 
   /* End stepped fluid modification */

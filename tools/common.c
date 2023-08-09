@@ -272,10 +272,12 @@ double entrop_two_step(double x1, double* params){
   double at1 = params[1];
   double at2 = params[2];
   double rg = params[3];
+  double rg2 = params[4];
   double x2 = x1*at1/at2;
 
   LHS = pow(x1*at1/a,3.);
-  RHS = 1. + rg/4*(3*(rhohat(x1)+rhohat(x2)) + (phat(x1)+phat(x2)));
+  //RHS = 1. + rg/4*(3*(rhohat(x1)+rhohat(x2)) + (phat(x1)+phat(x2)));
+  RHS = 1. + 1./4.*(rg*(3*rhohat(x1)+phat(x1)) + rg2*(3*rhohat(x2)+phat(x2)));
   return LHS - RHS;
 }
 

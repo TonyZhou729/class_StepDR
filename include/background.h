@@ -115,6 +115,7 @@ struct background
   double zt_stepped_fld; /**< \f$ z_t \f$: Fluid stepping redshift */
   double zt2_stepped_fld; /**< \f$ z_{t2} \f$: Optional second fluid stepping redshift */
   double rg_stepped_fld; /**< \f$ r_g \f$: Fluid step size parameter, set by model */
+  double rg2_stepped_fld; /**< \f$ r_{g2} \f$: Optional second fluid step size parameter, set by model */
   double Omega0_stepped_fld; /**< \f$ \Omega_{0 stepped_fld} \f$ 
                               * NO CALCULATIONS DONE WITH THIS, FOR BUDGET OUTPUT ONLY */
 

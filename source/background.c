@@ -814,14 +814,15 @@ int background_stepped_fld(
   double x2, at2, rh2, ph2; // In case fluid has a second transition.
   double w_local, cs2_local, rho_local; // Define local variables  
   double rg = pba->rg_stepped_fld;
+  double rg2 = pba->rg2_stepped_fld; // In case fluid has a second transition.
 
   double at1 = 1./(1.+pba->zt_stepped_fld);
   // Case for two-stepped fluid
   if (pba->zt2_stepped_fld > 0 ){
     at2 = 1./(1.+pba->zt2_stepped_fld);
-    double params[] = {a, at1, at2, rg};
+    double params[] = {a, at1, at2, rg, rg2};
     // Call numerical solver to obtain the scalar mass to temperature ratio.
-    x = solve_x_of_a(params, 4);  
+    x = solve_x_of_a(params, 5);  
   } else {
     double params[] = {a, at1, rg};
     x = solve_x_of_a(params, 3);  
@@ -838,12 +839,12 @@ int background_stepped_fld(
     ph2 = phat(x2);
   
     // Equation of state and squared sound speed.
-    w_local = 1./3. - (rg/3.)*(rh+rh2-ph-ph2)/(1+rg*(rh+rh2));
-    cs2_local = 1./3. - (rg/3.)*(x*x*ph+x2*x2*ph2) /
-                (12 + rg*(3+x*x)*ph + rg*(3+x2*x2)*ph2 + 9*rg*(rh+rh2));
+    w_local = 1./3. - (1./3.)*(rg*(rh-ph)+rg2*(rh2-ph2))/(1+rg*rh+rg2*rh2);
+    cs2_local = 1./3. - (1./3.)*(rg*x*x*ph+rg2*x2*x2*ph2) /
+                (12 + rg*(3+x*x)*ph + rg2*(3+x2*x2)*ph2 + 9*rg*rh+rg2*rh2);
   
     // Fluid density via neutrino density.
-    N = pba->N_ir_stepped_fld*(1+rg*(rh+rh2))/pow(1+(rg/4.)*(ph+ph2+3*(rh+rh2)), 4./3.);        
+    N = pba->N_ir_stepped_fld*(1+rg*rh+rg2*rh2)/pow(1+(1./4.)*(rg*(3*rh+ph)+rg2*(3*rh2+ph2)), 4./3.);        
   } else {
     // Just the WZDR equation of state, squared sound speed and N(x).
     w_local = 1./3. - (rg/3.)*(rh-ph)/(1+rg*rh);
