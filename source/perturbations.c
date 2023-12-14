@@ -9253,8 +9253,6 @@ int perturbations_derivs(double tau,
       if (pth->has_idm_dr == _TRUE_) {
         if (ppw->approx[ppw->index_ap_tca_idm_dr] == (int)tca_idm_dr_off) {
           dy[pv->index_pt_theta_idm] += -S_idm_dr * dmu_idm_dr * (theta_idm - theta_idr); /* correction to idm velocity due to idm_dr when tca_idm_dr is off */
-if (pba->has_rate_dmdr_stepped_fld == _FALSE_) {
-        dy[pv->index_pt_theta_idm] += k2*c2_idm*delta_idm; /* idm sound speed correction */
         }
         else {
           tca_slip_idm_dr = (pth->n_index_idm_dr-2./(1.+S_idm_dr))*a_prime_over_a*( theta_idm - theta_idr)
@@ -10192,7 +10190,6 @@ if (pba->has_rate_dmdr_stepped_fld == _FALSE_) {
   }
 
   return _SUCCESS_;
-}
 }
 
 /**
