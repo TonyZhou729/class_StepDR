@@ -2740,7 +2740,16 @@ int input_read_parameters_species(struct file_content * pfc,
              "You cannot pass in a negative value for the second stepped fluid transition redshift.");
 
   /* Read in optionally second non-standard r_g, default is 8/7 */
-  class_read_double("rg2_stepped_fld", pba->rg2_stepped_fld);
+  class_call(parser_read_string(pfc,"rg2_stepped_fld",&string1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+  if (flag1 == _TRUE_){
+    if ((strstr(string1, "Match") != NULL || strstr(string1, "match") != NULL)){
+      pba->rg2_stepped_fld = pba->rg_stepped_fld * (pba->rg_stepped_fld + 1);
+    } else {
+      class_read_double("rg2_stepped_fld", pba->rg2_stepped_fld);
+    }
+  }
 
   /* Check that first zt is set when the second zt2 is set */
   class_test(((pba->zt_stepped_fld == 0) && (pba->zt2_stepped_fld != 0)), 
@@ -2773,10 +2782,19 @@ int input_read_parameters_species(struct file_content * pfc,
     } 
   }
 
-  //class_read_double("N_ir_stepped_fld", pba->N_ir_stepped_fld);
-  //class_read_double("zt_stepped_fld", pba->zt_stepped_fld);
-  //class_read_double("rg_stepped_fld", pba->rg_stepped_fld);  
-  //pba->N_uv_stepped_fld = pba->N_ir_stepped_fld / pow(1+pba->rg_stepped_fld, 1./3.);  
+  /* Dark matter interaction with stepped fluid. For now we assume that 100% of DM interact
+   * if a non-zero rate is passed. See section below Eq. (3) in arXiv:2207.03500 for the
+   * precise definition of Gamma_0*/
+  class_call(parser_read_double(pfc,"rate0_dmdr_stepped_fld",&param1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+  pba->rate0_dmdr_stepped_fld = param1;
+  
+  /* Non-negative check */
+  class_test((pba->rate0_dmdr_stepped_fld < 0),
+             errmsg,
+             "You cannot pass in a negative value for the DM-stepped fluid interaction rate.");
+
   pba->Omega0_stepped_fld = pba->N_ir_stepped_fld * pba->Omega0_g; /** Assume late time value, well
   * after the fluid transition. For this reason the quantity is only useful for late time output
   * and not for any calculations. If density of the stepped fluid is needed at some scale factor,
@@ -5886,6 +5904,7 @@ int input_default_params(struct background *pba,
   pba->zt2_stepped_fld = 0.;
   pba->rg_stepped_fld = 8./7.;
   pba->rg2_stepped_fld = 8./7.;
+  pba->rate0_dmdr_stepped_fld = 0.;
   pba->Omega0_stepped_fld = 0.;
 
   /* End stepped fluid modification */

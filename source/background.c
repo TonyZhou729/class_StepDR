@@ -410,6 +410,7 @@ int background_functions(
   double rho_stepped_fld;
   double w_stepped_fld;
   double cs2_stepped_fld;
+  double rate_dmdr_stepped_fld;
 
   /* End stepped fluid modification */
 
@@ -596,12 +597,15 @@ int background_functions(
                                       rho_1nu,
                                       &rho_stepped_fld,                                 
                                       &w_stepped_fld,                                       
-                                      &cs2_stepped_fld),
+                                      &cs2_stepped_fld,
+                                      &rate_dmdr_stepped_fld),
                pba->error_message,
                pba->error_message);
     pvecback[pba->index_bg_rho_stepped_fld] = rho_stepped_fld;    
     pvecback[pba->index_bg_w_stepped_fld] = w_stepped_fld;
     pvecback[pba->index_bg_cs2_stepped_fld] = cs2_stepped_fld;
+    if (pba->has_rate_dmdr_stepped_fld)
+      pvecback[pba->index_bg_rate_dmdr_stepped_fld] = rate_dmdr_stepped_fld;
 
     // Add stepped fluid to total density and pressure contributions
     rho_tot += rho_stepped_fld;
@@ -798,7 +802,8 @@ int background_w_fld(
  * @param rho_1nu        Input: Energy density of 1 neutrino specie
  * @param rho            Output: Fluid density parameter 
  * @param w              Output: Fluid equation of state parameter 
- * @param cs2            Output: Squared sound speed of fluid 
+ * @param cs2            Output: Squared sound speed of fluid
+ * @param rate_dmdr      Output: Momentum transfer rate with dark matter
  * @return the error status
  */
 
@@ -808,13 +813,15 @@ int background_stepped_fld(
                            double rho_1nu,
                            double *rho,                           
                            double *w,                           
-                           double *cs2){
+                           double *cs2,
+                           double *rate_dmdr){
 
   double x, rh, ph, N; // Assisting variables
   double x2, at2, rh2, ph2; // In case fluid has a second transition.
-  double w_local, cs2_local, rho_local; // Define local variables  
+  double w_local, cs2_local, rho_local, rate_dmdr_local; // Define local variables  
   double rg = pba->rg_stepped_fld;
   double rg2 = pba->rg2_stepped_fld; // In case fluid has a second transition.
+  double rate0_dmdr = pba->rate0_dmdr_stepped_fld; // The value of the rate today, the rate at any redshift in the past parametrically depends on this user-input value.
 
   double at1 = 1./(1.+pba->zt_stepped_fld);
   // Case for two-stepped fluid
@@ -853,10 +860,16 @@ int background_stepped_fld(
   } 
   rho_local = rho_1nu * N;
 
+  // Solve for momentum transfer rate.
+  double root_x = pow(x, 0.5);
+  rate_dmdr_local = rate0_dmdr * pow(1.+pba->zt_stepped_fld, 2.) / pow(x, 2.) *
+                    pow(1. / (1. - 0.05*root_x + 0.131*x), 4.);
+
   // Assign results to pointers.
   if (rho != NULL) *rho = rho_local;
   if (w != NULL) *w = w_local;
   if (cs2 != NULL) *cs2 = cs2_local;
+  if (rate_dmdr != NULL) *rate_dmdr = rate_dmdr_local;
     
   return _SUCCESS_;
 }
@@ -1105,6 +1118,11 @@ int background_indices(
   if (pba->N_ir_stepped_fld != 0.)
     pba->has_stepped_fld = _TRUE_;
 
+  pba->has_rate_dmdr_stepped_fld = _FALSE_;
+
+  if (pba->rate0_dmdr_stepped_fld != 0.)
+    pba->has_rate_dmdr_stepped_fld = _TRUE_;
+
   /* End stepped fluid modification */
 
   if (pba->Omega0_cdm != 0.)
@@ -1230,6 +1248,9 @@ int background_indices(
 
   /* - index for stepped fluid squared sound speed */
   class_define_index(pba->index_bg_cs2_stepped_fld,pba->has_stepped_fld,index_bg,1);
+
+  /* - index fo stepped fluid momentum transfer rate to dark matter */
+  class_define_index(pba->index_bg_rate_dmdr_stepped_fld,pba->has_rate_dmdr_stepped_fld,index_bg,1);
 
   /* End stepped fluid modification */
 
@@ -2376,6 +2397,7 @@ int background_initial_conditions(
                                       rho_1nu,
                                       &rho_stepped_fld,
                                       NULL,
+                                      NULL,
                                       NULL), 
                pba->error_message, 
                pba->error_message);  
@@ -2637,6 +2659,7 @@ int background_output_titles(
   class_store_columntitle(titles,"(.)rho_stepped_fld",pba->has_stepped_fld);  
   class_store_columntitle(titles,"w_stepped_fld",pba->has_stepped_fld);  
   class_store_columntitle(titles,"cs2_stepped_fld",pba->has_stepped_fld);  
+  class_store_columntitle(titles,"rate_dmdr_stepped_fld",pba->has_rate_dmdr_stepped_fld);
 
   /* End stepped fluid modification */
 
@@ -2718,6 +2741,7 @@ int background_output_data(
     class_store_double(dataptr,pvecback[pba->index_bg_rho_stepped_fld],pba->has_stepped_fld,storeidx); 
     class_store_double(dataptr,pvecback[pba->index_bg_w_stepped_fld],pba->has_stepped_fld,storeidx); 
     class_store_double(dataptr,pvecback[pba->index_bg_cs2_stepped_fld],pba->has_stepped_fld,storeidx); 
+    class_store_double(dataptr,pvecback[pba->index_bg_rate_dmdr_stepped_fld],pba->has_rate_dmdr_stepped_fld,storeidx); 
 
     /* End stepped fluid modification */
 

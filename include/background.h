@@ -116,6 +116,7 @@ struct background
   double zt2_stepped_fld; /**< \f$ z_{t2} \f$: Optional second fluid stepping redshift */
   double rg_stepped_fld; /**< \f$ r_g \f$: Fluid step size parameter, set by model */
   double rg2_stepped_fld; /**< \f$ r_{g2} \f$: Optional second fluid step size parameter, set by model */
+  double rate0_dmdr_stepped_fld; /**< \f$ \Gamma_0 \f$: Momentum transfer rate of dark matter to stepped fluid, extrapolated to today in a theory where the dark radiation has no step */
   double Omega0_stepped_fld; /**< \f$ \Omega_{0 stepped_fld} \f$ 
                               * NO CALCULATIONS DONE WITH THIS, FOR BUDGET OUTPUT ONLY */
 
@@ -194,6 +195,7 @@ struct background
   int index_bg_rho_stepped_fld; /**< Stepped fluid density */
   int index_bg_w_stepped_fld; /**< Stepped fluid equation of state */
   int index_bg_cs2_stepped_fld; /**< Stepped fluid sound speed squared */
+  int index_bg_rate_dmdr_stepped_fld; /** Momentum transfer rate of dark matter - stepped fluid */
 
   /* End stepped fluid modification */
 
@@ -320,6 +322,7 @@ struct background
   /* Stepped fluid modification */ 
   
   short has_stepped_fld; /**< presence of stepped dark radiation/fluid? */
+  short has_rate_dmdr_stepped_fld; /**< presence of stepped fluid coupling to dark matter? */
 
   /* End stepped fluid modification */
   //@}
@@ -457,7 +460,8 @@ extern "C" {
                              double rho_ur,
                              double *rho,
                              double *w,
-                             double *cs2);
+                             double *cs2,
+                             double *rate_dmdr);
 
   /* End stepped fluid modification */
   

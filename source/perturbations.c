@@ -5462,6 +5462,10 @@ int perturbations_initial_conditions(struct precision * ppr,
   double delta_tot;
   double velocity_tot;
   double s2_squared;
+  /* Stepped fluid modification */
+  double kappa_stepped_fld;
+  /* End stepped fluid modification */
+
 
   /** --> For scalars */
 
@@ -5625,6 +5629,12 @@ int perturbations_initial_conditions(struct precision * ppr,
       if (pba->has_idm == _TRUE_) {
         ppw->pv->y[ppw->pv->index_pt_delta_idm] = 3./4.*ppw->pv->y[ppw->pv->index_pt_delta_g]; /* idm density */
         ppw->pv->y[ppw->pv->index_pt_theta_idm] = ppw->pv->y[ppw->pv->index_pt_theta_g];
+        /* Stepped fluid modification */
+        if (pba->has_rate_dmdr_stepped_fld){
+          kappa_stepped_fld = pba->rate0_dmdr_stepped_fld * pow(1.+pba->rg_stepped_fld, -2./3.) / pba->H0 / pow(rho_r, 0.5);
+          ppw->pv->y[ppw->pv->index_pt_theta_idm] *= kappa_stepped_fld/(4.+kappa_stepped_fld);
+        }
+        /* End stepped fluid modification */
       }
 
       if (pba->has_dcdm == _TRUE_) {
@@ -8956,6 +8966,10 @@ int perturbations_derivs(double tau,
   /* Stepped fluid modification */
   double delta_stepped_fld=0., theta_stepped_fld=0.;
   double w_stepped_fld, cs2_stepped_fld;
+  
+  // Quantities for coupling stepped fluid to dark matter //
+  double rate_dmdr_stepped_fld;
+  double R_dmdr_stepped_fld; // 3rho_dm / 4rho_wz.
   /* End stepped fluid modification */
 
   /*  for use with interacting dark matter  */
@@ -9114,6 +9128,13 @@ int perturbations_derivs(double tau,
       theta_stepped_fld = y[pv->index_pt_theta_stepped_fld];
       w_stepped_fld = pvecback[pba->index_bg_w_stepped_fld];
       cs2_stepped_fld = pvecback[pba->index_bg_cs2_stepped_fld];
+
+      /* Short hand for DM-stepped fluid momentum transfer rate */
+      rate_dmdr_stepped_fld = pvecback[pba->index_bg_rate_dmdr_stepped_fld];
+      
+      /* rho_idm / (rho_stepped_fld + p_stepped_fld) */
+      R_dmdr_stepped_fld = pvecback[pba->index_bg_rho_idm] / (pvecback[pba->index_bg_rho_stepped_fld]*(1.+w_stepped_fld));
+      //R_dmdr_stepped_fld = 3*pvecback[pba->index_bg_rho_g] / (4*pvecback[pba->index_bg_rho_stepped_fld]);
     }
 
     /* End stepped fluid modification */
@@ -9207,13 +9228,21 @@ int perturbations_derivs(double tau,
 
     /** - --> (e) BEGINNING OF ACTUAL SYSTEM OF EQUATIONS OF EVOLUTION */
 
+    /* Stepped fluid modification */
+    // Some of the following lines have been changed to accommodate new dark matter-
+    // stepped fluid interaction.
+
     /* start with idm as it might be needed during (normal) tca  */
     if (pba->has_idm == _TRUE_){
       dy[pv->index_pt_delta_idm] = -(theta_idm+metric_continuity); /* idm density */
-      dy[pv->index_pt_theta_idm] =
-        -a_prime_over_a*theta_idm
-        +metric_euler
-        + k2*c2_idm*delta_idm; /* idm velocity */
+      dy[pv->index_pt_theta_idm] = -a_prime_over_a*theta_idm + metric_euler; /* idm velocity */
+      if (pba->has_rate_dmdr_stepped_fld == _FALSE_) {  
+        dy[pv->index_pt_theta_idm] += k2*c2_idm*delta_idm; /* idm sound speed correction */
+      } else {
+        // Correction to idm velocity due to stepped fluid interaction.
+        dy[pv->index_pt_theta_idm] += a*rate_dmdr_stepped_fld * (theta_stepped_fld - theta_idm);
+      }
+    /* End stepped fluid modification */
 
       if (pth->has_idm_g == _TRUE_) {
         dy[pv->index_pt_theta_idm] += -S_idm_g*dmu_idm_g*(theta_idm-theta_g); /* correction to idm velocity due to idm_g */
@@ -9224,7 +9253,8 @@ int perturbations_derivs(double tau,
       if (pth->has_idm_dr == _TRUE_) {
         if (ppw->approx[ppw->index_ap_tca_idm_dr] == (int)tca_idm_dr_off) {
           dy[pv->index_pt_theta_idm] += -S_idm_dr * dmu_idm_dr * (theta_idm - theta_idr); /* correction to idm velocity due to idm_dr when tca_idm_dr is off */
-
+if (pba->has_rate_dmdr_stepped_fld == _FALSE_) {
+        dy[pv->index_pt_theta_idm] += k2*c2_idm*delta_idm; /* idm sound speed correction */
         }
         else {
           tca_slip_idm_dr = (pth->n_index_idm_dr-2./(1.+S_idm_dr))*a_prime_over_a*( theta_idm - theta_idr)
@@ -9700,8 +9730,8 @@ int perturbations_derivs(double tau,
         3.*a_prime_over_a*(cs2_stepped_fld-w_stepped_fld)*delta_stepped_fld;
 
       /* Velocity: $\dot{\theta} = \frac{k^2 c_s^2}{1+w}\delta - \mathcal{H}(1-3c_s^2)\theta */
-      dy[pv->index_pt_theta_stepped_fld] = 
-        k2*cs2_stepped_fld/(1.+w_stepped_fld)*delta_stepped_fld-a_prime_over_a*(1-3*cs2_stepped_fld)*theta_stepped_fld;
+      /* New: added coupling to dark matter, see (B6) in arXiv:2207.03500 */
+      dy[pv->index_pt_theta_stepped_fld] = k2*cs2_stepped_fld/(1.+w_stepped_fld)*delta_stepped_fld - a_prime_over_a*(1-3*cs2_stepped_fld)*theta_stepped_fld + a*rate_dmdr_stepped_fld*R_dmdr_stepped_fld*(theta_idm-theta_stepped_fld);
     }
 
     /* End stepped fluid modification */
@@ -10162,6 +10192,7 @@ int perturbations_derivs(double tau,
   }
 
   return _SUCCESS_;
+}
 }
 
 /**
@@ -10740,5 +10771,4 @@ int perturbations_rsa_idr_delta_and_theta(
   }
 
   return _SUCCESS_;
-
 }
