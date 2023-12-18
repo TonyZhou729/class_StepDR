@@ -2788,7 +2788,8 @@ int input_read_parameters_species(struct file_content * pfc,
   class_call(parser_read_double(pfc,"rate0_dmdr_stepped_fld",&param1,&flag1,errmsg),
              errmsg,
              errmsg);
-  pba->rate0_dmdr_stepped_fld = param1;
+  if (flag1 == _TRUE_)
+    pba->rate0_dmdr_stepped_fld = param1;
   
   /* Non-negative check */
   class_test((pba->rate0_dmdr_stepped_fld < 0),
